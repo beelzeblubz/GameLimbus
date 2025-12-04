@@ -5,9 +5,16 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    
+
     public void Play()
     {
         SceneManager.LoadScene("CutScene1");
+    }
+
+    public void Chapter()
+    {
+        Debug.Log("Chapter Click");
     }
 
     public void Setting()
