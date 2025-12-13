@@ -47,6 +47,24 @@ TagManager:
   - name: Player
     uniqueID: 4124750795
     locked: 0
-  - name: Tembok
+  - name: Furniture0
+    uniqueID: 645641925
+    locked: 0
+  - name: Wall
     uniqueID: 643786019
+    locked: 0
+  - name: Furniture
+    uniqueID: 2278243165
+    locked: 0
+  - name: Furniture0.5
+    uniqueID: 3075912025
+    locked: 0
+  - name: Furniture1
+    uniqueID: 3419950443
+    locked: 0
+  - name: Furniture2
+    uniqueID: 3882581437
+    locked: 0
+  - name: Furniture3
+    uniqueID: 4141452669
     locked: 0
