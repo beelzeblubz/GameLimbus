@@ -41,3 +41,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Ground
+    uniqueID: 3914674757
+    locked: 0
+  - name: Player
+    uniqueID: 4124750795
+    locked: 0
+  - name: Tembok
+    uniqueID: 643786019
+    locked: 0
