@@ -9,7 +9,7 @@ public class MainMenu : MonoBehaviour
 
     public void Play()
     {
-        SceneManager.LoadScene("CutScene1");
+        SceneManager.LoadScene("Stage1");
     }
 
     public void Chapter()

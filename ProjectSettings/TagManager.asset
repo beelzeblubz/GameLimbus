@@ -68,3 +68,6 @@ TagManager:
   - name: Furniture3
     uniqueID: 4141452669
     locked: 0
+  - name: Kursi
+    uniqueID: 2478383167
+    locked: 0
