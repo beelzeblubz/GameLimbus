@@ -71,6 +71,12 @@ TagManager:
   - name: Kursi
     uniqueID: 2478383167
     locked: 0
+  - name: Fx
+    uniqueID: 3079567057
+    locked: 0
+  - name: LightPlayer
+    uniqueID: 836986261
+    locked: 0
   - name: UI
     uniqueID: 474829419
     locked: 0
