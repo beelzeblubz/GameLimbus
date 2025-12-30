@@ -24,36 +24,63 @@ public class Dialogue
 
 public class DialogueTrigger : MonoBehaviour
 {
+    public enum InteractionType
+    {
+        PressE,
+        AutoTrigger
+    }
+
+    [Header("Interaction Settings")]
+    [SerializeField] private InteractionType interactionType;
+
+    [Header("Buat Press E Aja")]
     [SerializeField] private GameObject eventDetect;
+
     public Dialogue dialogue;
 
     private bool playerInRange = false;
+    private bool hasTriggered = false;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
-        {
-            playerInRange = true;
-            eventDetect.SetActive(true);
+        if (!collision.CompareTag("Player")) return;
 
-            Debug.Log("Player masuk area interaksi");
+        playerInRange = true;
+        Debug.Log("Player masuk area interaksi");
+
+        // PressE
+        if (interactionType == InteractionType.PressE && eventDetect != null)
+        {
+            eventDetect.SetActive(true);
+        }
+
+        // AutoTrigger
+        if (interactionType == InteractionType.AutoTrigger && !hasTriggered)
+        {
+            hasTriggered = true;
+            TriggerDialogue();
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
-        {
-            playerInRange = false;
-            eventDetect.SetActive(false);
+        if (!collision.CompareTag("Player")) return;
 
-            Debug.Log("Player keluar area interaksi");
+        playerInRange = false;
+        Debug.Log("Player keluar area interaksi");
+
+        // PressE
+        if (interactionType == InteractionType.PressE && eventDetect != null)
+        {
+            eventDetect.SetActive(false);
         }
     }
 
     private void Update()
     {
-        if (playerInRange && Input.GetKeyDown(KeyCode.E))
+        if (interactionType == InteractionType.PressE &&
+            playerInRange &&
+            Input.GetKeyDown(KeyCode.E))
         {
             TriggerDialogue();
         }
