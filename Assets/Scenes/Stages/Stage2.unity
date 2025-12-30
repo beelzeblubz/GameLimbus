@@ -35013,6 +35013,14 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: 7caded7bfe207f940aaaf792e46f1dec, type: 3}
       line: ...Ini lebih berbeda dari lantai sebelumnya...
+    - character:
+        name: Kino
+        charIcon: {fileID: 21300000, guid: 92980fcff04640e42b8094973538d77f, type: 3}
+      line: Aku harus mencari pintu darurat
+    - character:
+        name: Kino
+        charIcon: {fileID: 21300000, guid: 481f427d4507ac64b97eda1e9e604877, type: 3}
+      line: Ugh.. Dan apa apaan darah inii...?
   delay: 0.2
 --- !u!4 &533698527
 Transform:
@@ -46595,16 +46603,6 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
-  - first: {x: -2, y: 12, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 40
-      m_TileSpriteIndex: 40
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
   - first: {x: -21, y: 13, z: 0}
     second:
       serializedVersion: 2
@@ -47987,7 +47985,7 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: 01347a81decc02142a47574393827441, type: 2}
   - m_RefCount: 82
     m_Data: {fileID: 11400000, guid: 7110720ab871b7b42a3edcb2defa3bd2, type: 2}
-  - m_RefCount: 57
+  - m_RefCount: 56
     m_Data: {fileID: 11400000, guid: 8773f37bb60e930458f17222d51e448b, type: 2}
   m_TileSpriteArray:
   - m_RefCount: 0
@@ -48070,10 +48068,10 @@ Tilemap:
     m_Data: {fileID: 1040038528, guid: 2c751d5524b97f042bd89b3c3a540ddb, type: 3}
   - m_RefCount: 82
     m_Data: {fileID: 18128445, guid: 2c751d5524b97f042bd89b3c3a540ddb, type: 3}
-  - m_RefCount: 57
+  - m_RefCount: 56
     m_Data: {fileID: 1100230830, guid: 2c751d5524b97f042bd89b3c3a540ddb, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 282
+  - m_RefCount: 281
     m_Data:
       e00: 1
       e01: 0
@@ -48092,7 +48090,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 282
+  - m_RefCount: 281
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -57545,7 +57543,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1342224672
 Transform:
   m_ObjectHideFlags: 0
