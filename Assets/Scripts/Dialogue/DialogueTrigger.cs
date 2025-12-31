@@ -78,9 +78,7 @@ public class DialogueTrigger : MonoBehaviour
 
     private void Update()
     {
-        if (interactionType == InteractionType.PressE &&
-            playerInRange &&
-            Input.GetKeyDown(KeyCode.E))
+        if (interactionType == InteractionType.PressE && playerInRange && Input.GetKeyDown(KeyCode.E))
         {
             TriggerDialogue();
         }

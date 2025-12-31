@@ -16,24 +16,58 @@ public class DialogueManager : MonoBehaviour
     private Queue<DialogueLine> lines;
 
     public bool isDialoguesActive = false;
-    public float typingSpeed = 0.2f;
-    // public Animator animator;
+    public float typingSpeed = 0.03f;
+
+    [Header("Typing SFX")]
+    public AudioSource audioSource;
+    public AudioClip typingSFX;
+    public int soundInterval = 3;
+
+    private bool isTyping = false;
+    private Coroutine typingCoroutine;
+    private int soundCounter = 0;
 
     private void Awake()
     {
         if (Instance == null)
-        {
             Instance = this;
-        }
-        
+
         lines = new Queue<DialogueLine>();
     }
 
     private void Update()
     {
+        SpaceClick();
+    }
+
+    public void SpaceClick()
+    {
         if (!isDialoguesActive) return;
 
         if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (isTyping)   // Jika masih typing
+            {
+                SkipTyping();
+            }
+            else    // Jika tidak sedang typing
+            {
+                DisplayNextDialogueLine();
+            }
+        }
+    }
+
+    public void ButtonClick()   // Tidak masuk void update, soalnya ngedetect button. 
+                                // Kalau ditaruh di update bakal ngedetect terus walau ga di inetacr apa apa. 
+                                // Jadi GameObject button tinggal kasih ButtonClick
+    {
+        if (!isDialoguesActive) return;
+
+        if (isTyping)   // Jika masih typing
+        {
+            SkipTyping();
+        }
+        else    // Jika tidak sedang typing
         {
             DisplayNextDialogueLine();
         }
@@ -42,10 +76,9 @@ public class DialogueManager : MonoBehaviour
     public void StartDialogue(Dialogue dialogue)
     {
         if (isDialoguesActive) return;
-        
+
         isDialoguesActive = true;
         dialogueBox.SetActive(true);
-        // animator.Play("show");
         lines.Clear();
 
         foreach (DialogueLine dialogueLine in dialogue.dialogueLines)
@@ -71,17 +104,49 @@ public class DialogueManager : MonoBehaviour
 
         StopAllCoroutines();
 
-        StartCoroutine(TypeSentence(currentLine));
+        StartCoroutine(TypeSentence(currentLine.line));
     }
 
-    IEnumerator TypeSentence(DialogueLine dialogueLine)
+    IEnumerator TypeSentence(string sentence)
     {
-        dialogueArea.text = "";
-        foreach (char letter in dialogueLine.line.ToCharArray())
+        isTyping = true;
+        dialogueArea.text = sentence;
+        dialogueArea.maxVisibleCharacters = 0;
+        soundCounter = 0;
+
+        for (int i = 0; i < sentence.Length; i++)
         {
-            dialogueArea.text += letter;
+            dialogueArea.maxVisibleCharacters++;
+
+            char letter = sentence[i];
+            soundCounter++;
+
+            if (audioSource && typingSFX && letter != ' ' && soundCounter % soundInterval == 0)
+            {
+                audioSource.PlayOneShot(typingSFX);
+            }
+
             yield return new WaitForSeconds(typingSpeed);
         }
+
+        FinishTyping();
+    }
+
+    void SkipTyping()
+    {
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
+
+        dialogueArea.maxVisibleCharacters = dialogueArea.text.Length;
+        FinishTyping();
+    }
+
+    void FinishTyping()
+    {
+        isTyping = false;
+
+        if (audioSource)
+            audioSource.Stop();
     }
 
     void EndDialogue()
@@ -91,6 +156,5 @@ public class DialogueManager : MonoBehaviour
 
         dialogueArea.text = "";
         characterName.text = "";
-        // animator.Play("hide");
     }
 }
