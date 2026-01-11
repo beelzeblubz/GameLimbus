@@ -1369,7 +1369,7 @@ Transform:
   m_GameObject: {fileID: 45057576}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16.23, y: -24.62, z: 0}
+  m_LocalPosition: {x: 7.03, y: 12.58, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3239,6 +3239,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -3246,6 +3247,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ini juga bukan
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &81073114
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -3390,6 +3404,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -3397,6 +3412,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ini bukan..
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &91739187
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -3725,6 +3753,7 @@ RectTransform:
   - {fileID: 13366550}
   - {fileID: 1443794899}
   - {fileID: 533698527}
+  - {fileID: 1910858996}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -26788,6 +26817,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -26795,6 +26825,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ini  juga tidak
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &416435675
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -28332,6 +28375,122 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1930462717}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &590846771
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 590846772}
+  - component: {fileID: 590846774}
+  - component: {fileID: 590846773}
+  m_Layer: 0
+  m_Name: Lift
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &590846772
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590846771}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 10.02, y: 0.27, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 915548418}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!61 &590846773
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590846771}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.22135782, y: -0.03689298}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 3.5579138, y: 1.073786}
+  m_EdgeRadius: 0
+--- !u!114 &590846774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590846771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e65d5cc5f011ca4459f87c81a2bbac93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactionType: 0
+  itemType: 2
+  eventDetect: {fileID: 483508296}
+  dialogue:
+    dialogueLines: []
+  successDialogue:
+    dialogueLines:
+    - character:
+        name: 
+        charIcon: {fileID: 0}
+      line: ini kuncinya
+  lockedDialogue:
+    dialogueLines:
+    - character:
+        name: 
+        charIcon: {fileID: 0}
+      line: lift terkunci
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 1910858995}
+  unlockedIndicator: {fileID: 1910858995}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!1 &594056587
 GameObject:
   m_ObjectHideFlags: 0
@@ -29296,6 +29455,51 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &639551786
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 639551788}
+  - component: {fileID: 639551787}
+  m_Layer: 0
+  m_Name: SceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &639551787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 639551786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e9390334a5f72941b52ee81618e694d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioSource: {fileID: 1141351939}
+--- !u!4 &639551788
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 639551786}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 21.826176, y: -26.872202, z: -4.769077}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &648688911
 GameObject:
   m_ObjectHideFlags: 0
@@ -31833,7 +32037,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &814165472
 Transform:
   m_ObjectHideFlags: 0
@@ -31862,6 +32066,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 1
+  itemType: 0
   eventDetect: {fileID: 0}
   dialogue:
     dialogueLines:
@@ -31915,6 +32120,19 @@ MonoBehaviour:
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Dia selalu meninggalkan barang barangnya di mejanya... Tidak ada salahnya
         mencoba mencari...
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &814165474
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -32180,7 +32398,7 @@ MonoBehaviour:
   m_BlendStyleIndex: 0
   m_FalloffIntensity: 0.5
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.005
+  m_Intensity: 0.57
   m_LightVolumeIntensity: 1
   m_LightVolumeIntensityEnabled: 0
   m_ApplyToSortingLayers: 00000000453255e9cbb3daf5c5b67b2623655f265d3bcb8759b156b76b4dd8cbbd7d6be77d8dd9f63f20b993d1768eb79565e3316b524d1c
@@ -32258,6 +32476,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 382179140}
+  - {fileID: 590846772}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &925722108
@@ -32307,6 +32526,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 1
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -32314,6 +32534,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Oh! Ini dia meja senior Mika
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 1910858995}
+  pickupPopup: {fileID: 1910858995}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &925722111
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -37116,6 +37349,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -37123,6 +37357,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Bukan...
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1102038816
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -37313,6 +37560,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 1
+  itemType: 0
   eventDetect: {fileID: 0}
   dialogue:
     dialogueLines:
@@ -37324,6 +37572,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: c0ff2e9ea520d2544ad6135ec3e5e451, type: 3}
       line: ...Oke... Tenang... Jangan freak out... Mungkin cuma halusinasi ngantuk...
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1119878881
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -37468,6 +37729,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -37475,6 +37737,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Bukan...
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1125279289
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -37572,6 +37847,134 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1141351938
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1141351940}
+  - component: {fileID: 1141351939}
+  m_Layer: 0
+  m_Name: BacksoundAudio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!82 &1141351939
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1141351938}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: ecda06dfee5abed48be31158c0971a97, type: 3}
+  m_PlayOnAwake: 1
+  m_Volume: 0.3
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!4 &1141351940
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1141351938}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1930462717}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1163157026
 GameObject:
   m_ObjectHideFlags: 0
@@ -37619,6 +38022,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -37626,6 +38030,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Sepertinya bukan ini juga
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1163157029
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -39691,6 +40108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 1
+  itemType: 0
   eventDetect: {fileID: 0}
   dialogue:
     dialogueLines:
@@ -39702,6 +40120,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: d4b4d7ef5e61f1d4a8a7fbbf3b3d5e8a, type: 3}
       line: Biasanya rame tapi sekarang begitu sepi...
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!212 &1181034352
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -39844,6 +40275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -39851,6 +40283,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Hm..
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1197502351
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -44111,6 +44556,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -44118,6 +44564,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ini bukan meja senior Mika..
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1298211115
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -44262,6 +44721,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 1
+  itemType: 0
   eventDetect: {fileID: 0}
   dialogue:
     dialogueLines:
@@ -44269,6 +44729,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ruang meeting.. Sangat gelap.. Apa ada sesuatu yang bisa kutemukan disini...?
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1323690838
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -44413,6 +44886,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -44420,6 +44894,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Bukan ini juga..
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1357874320
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -45532,6 +46019,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -45539,6 +46027,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ini kosong
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1390251027
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -45683,6 +46184,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 1
+  itemType: 0
   eventDetect: {fileID: 0}
   dialogue:
     dialogueLines:
@@ -45702,6 +46204,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: 7caded7bfe207f940aaaf792e46f1dec, type: 3}
       line: ...Tidak! Memang ada yang berubah, ini aneh!
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1399177336
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -46869,7 +47384,7 @@ Transform:
   m_GameObject: {fileID: 1406863074}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16.23, y: -24.62, z: 0}
+  m_LocalPosition: {x: 7.03, y: 12.58, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -46940,6 +47455,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -46947,6 +47463,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Kenapa aku tidak bisa mengingat meja senior Mika...
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1426336627
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -48799,6 +49328,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -48806,6 +49336,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Terlalu rapi untuk meja senior Mika
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1485545410
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -50721,6 +51264,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -50728,6 +51272,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Hmm..
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1488786350
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -50872,6 +51429,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -50879,6 +51437,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Bukan
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1524215430
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -51937,6 +52508,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -51944,6 +52516,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Bukan...
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1675010335
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -52088,6 +52673,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -52095,6 +52681,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Bukan..
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1699307375
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -53571,6 +54170,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -53578,6 +54178,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ini bukan meja senior Mika
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1804048159
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -55363,6 +55976,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 1
+  itemType: 0
   eventDetect: {fileID: 0}
   dialogue:
     dialogueLines:
@@ -55382,6 +55996,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: 92980fcff04640e42b8094973538d77f, type: 3}
       line: Aduh, hp ku juga kenapa mati sih...
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1841697710
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -55526,6 +56153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 1
+  itemType: 0
   eventDetect: {fileID: 0}
   dialogue:
     dialogueLines:
@@ -55533,6 +56161,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: 43d90dd23a9f19348a7011b389c123d4, type: 3}
       line: Restroom tidak banyak berubah
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1854799467
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -55754,7 +56395,7 @@ Transform:
   m_GameObject: {fileID: 1859587565}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16.23, y: -24.62, z: 0}
+  m_LocalPosition: {x: 7.03, y: 12.58, z: 0}
   m_LocalScale: {x: 0.18855219, y: 0.18855219, z: 0.18855219}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -61150,6 +61791,78 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Damping: 0
+--- !u!1 &1910858995
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1910858996}
+  - component: {fileID: 1910858998}
+  - component: {fileID: 1910858997}
+  m_Layer: 5
+  m_Name: Security Card
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1910858996
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910858995}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 127566644}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1910858997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910858995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.4747336, g: 1, b: 0, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &1910858998
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910858995}
+  m_CullTransparentMesh: 1
 --- !u!1 &1930462716
 GameObject:
   m_ObjectHideFlags: 0
@@ -61181,6 +61894,7 @@ Transform:
   m_Children:
   - {fileID: 587970987}
   - {fileID: 396646347}
+  - {fileID: 1141351940}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1938306737
@@ -61644,6 +62358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -61651,6 +62366,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ini bukan
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1953281622
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -61795,6 +62523,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 1
+  itemType: 0
   eventDetect: {fileID: 0}
   dialogue:
     dialogueLines:
@@ -61802,6 +62531,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: 43d90dd23a9f19348a7011b389c123d4, type: 3}
       line: Restroom tidak banyak berubah
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1953891968
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -61946,6 +62688,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionType: 0
+  itemType: 0
   eventDetect: {fileID: 483508296}
   dialogue:
     dialogueLines:
@@ -61953,6 +62696,19 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
       line: Ini bukan meja senior Mika
+  successDialogue:
+    dialogueLines: []
+  lockedDialogue:
+    dialogueLines: []
+  keycardName: Security Card
+  requiredKeycardName: Security Card
+  itemModel: {fileID: 0}
+  pickupPopup: {fileID: 0}
+  popupDuration: 2
+  lockedIndicator: {fileID: 0}
+  unlockedIndicator: {fileID: 0}
+  nextSceneName: Stage2
+  sceneLoadDelay: 1
 --- !u!61 &1975790955
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -64265,6 +65021,50 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &2113561544
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2113561546}
+  - component: {fileID: 2113561545}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2113561545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2113561544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 473da9971906e9f42bb3ea6870efb4c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &2113561546
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2113561544}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 9.7042885, y: 0.4177943, z: 0.037281767}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!19719996 &406124523141921975
 TilemapCollider2D:
   m_ObjectHideFlags: 0
@@ -66630,3 +67430,5 @@ SceneRoots:
   - {fileID: 127566644}
   - {fileID: 557970067}
   - {fileID: 1930462717}
+  - {fileID: 639551788}
+  - {fileID: 2113561546}
