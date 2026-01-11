@@ -178,7 +178,8 @@ MonoBehaviour:
   typingSpeed: 0.05
   audioSource: {fileID: 587970986}
   typingSFX: {fileID: 8300000, guid: 34bf23b0a161599449943f76cc7a9573, type: 3}
-  soundInterval: 10
+  typingVolume: 0.5
+  loopTypingSound: 1
 --- !u!1 &18441354
 GameObject:
   m_ObjectHideFlags: 0
@@ -28232,8 +28233,8 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.35
-  m_Pitch: 0.7
+  m_Volume: 0.27
+  m_Pitch: 0.6
   Loop: 0
   Mute: 0
   Spatialize: 0

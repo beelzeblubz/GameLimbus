@@ -21,11 +21,12 @@ public class DialogueManager : MonoBehaviour
     [Header("Typing SFX")]
     public AudioSource audioSource;
     public AudioClip typingSFX;
-    public int soundInterval = 3;
+    [Range(0f, 1f)] public float typingVolume = 0.5f;
+    public bool loopTypingSound = true;
 
     private bool isTyping = false;
     private Coroutine typingCoroutine;
-    private int soundCounter = 0;
+    private Coroutine soundCoroutine;
 
     private void Awake()
     {
@@ -57,9 +58,7 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    public void ButtonClick()   // Tidak masuk void update, soalnya ngedetect button. 
-                                // Kalau ditaruh di update bakal ngedetect terus walau ga di inetacr apa apa. 
-                                // Jadi GameObject button tinggal kasih ButtonClick
+    public void ButtonClick()
     {
         if (!isDialoguesActive) return;
 
@@ -102,9 +101,14 @@ public class DialogueManager : MonoBehaviour
         characterIcon.sprite = currentLine.character.charIcon;
         characterName.text = currentLine.character.name;
 
-        StopAllCoroutines();
+        // Hentikan semua coroutine yang sedang berjalan
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
+        if (soundCoroutine != null)
+            StopCoroutine(soundCoroutine);
 
-        StartCoroutine(TypeSentence(currentLine.line));
+        // Mulai typing
+        typingCoroutine = StartCoroutine(TypeSentence(currentLine.line));
     }
 
     IEnumerator TypeSentence(string sentence)
@@ -112,30 +116,68 @@ public class DialogueManager : MonoBehaviour
         isTyping = true;
         dialogueArea.text = sentence;
         dialogueArea.maxVisibleCharacters = 0;
-        soundCounter = 0;
 
+        // Mulai audio typing
+        StartTypingSound();
+
+        // Type setiap karakter
         for (int i = 0; i < sentence.Length; i++)
         {
             dialogueArea.maxVisibleCharacters++;
-
-            char letter = sentence[i];
-            soundCounter++;
-
-            if (audioSource && typingSFX && letter != ' ' && soundCounter % soundInterval == 0)
-            {
-                audioSource.PlayOneShot(typingSFX);
-            }
-
             yield return new WaitForSeconds(typingSpeed);
         }
 
         FinishTyping();
     }
 
+    void StartTypingSound()
+    {
+        // Hentikan audio yang sedang berjalan
+        if (audioSource && audioSource.isPlaying)
+            audioSource.Stop();
+
+        // Mulai audio typing jika ada AudioSource dan SFX
+        if (audioSource != null && typingSFX != null)
+        {
+            // Atur audio source
+            audioSource.clip = typingSFX;
+            audioSource.volume = typingVolume;
+            audioSource.loop = loopTypingSound;
+            
+            // Mulai memutar
+            audioSource.Play();
+
+            // Mulai coroutine untuk mengontrol audio
+            soundCoroutine = StartCoroutine(MonitorTypingSound());
+        }
+    }
+
+    IEnumerator MonitorTypingSound()
+    {
+        // Tetap mainkan audio selama typing berlangsung
+        while (isTyping && audioSource != null)
+        {
+            // Jika audio berhenti tetapi masih typing, mulai ulang
+            if (!audioSource.isPlaying && audioSource.clip != null)
+            {
+                audioSource.Play();
+            }
+            yield return null; // Tunggu 1 frame
+        }
+
+        // Hentikan audio saat selesai typing
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+    }
+
     void SkipTyping()
     {
         if (typingCoroutine != null)
             StopCoroutine(typingCoroutine);
+        if (soundCoroutine != null)
+            StopCoroutine(soundCoroutine);
 
         dialogueArea.maxVisibleCharacters = dialogueArea.text.Length;
         FinishTyping();
@@ -145,16 +187,64 @@ public class DialogueManager : MonoBehaviour
     {
         isTyping = false;
 
-        if (audioSource)
+        // Hentikan audio typing
+        if (audioSource && audioSource.isPlaying)
+        {
             audioSource.Stop();
+        }
+
+        if (soundCoroutine != null)
+        {
+            StopCoroutine(soundCoroutine);
+            soundCoroutine = null;
+        }
     }
 
     void EndDialogue()
     {
         isDialoguesActive = false;
-        dialogueBox.SetActive(false);
+        
+        // Hentikan semua audio
+        if (audioSource && audioSource.isPlaying)
+            audioSource.Stop();
 
+        // Hentikan semua coroutine
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
+        if (soundCoroutine != null)
+            StopCoroutine(soundCoroutine);
+
+        // Reset state
+        isTyping = false;
+        dialogueBox.SetActive(false);
         dialogueArea.text = "";
         characterName.text = "";
+    }
+
+    // Optional: Method untuk mengontrol volume secara dinamis
+    public void SetTypingVolume(float volume)
+    {
+        typingVolume = Mathf.Clamp01(volume);
+        if (audioSource != null)
+        {
+            audioSource.volume = typingVolume;
+        }
+    }
+
+    // Optional: Method untuk pause/resume typing sound
+    public void PauseTypingSound()
+    {
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Pause();
+        }
+    }
+
+    public void ResumeTypingSound()
+    {
+        if (audioSource != null && !audioSource.isPlaying && isTyping)
+        {
+            audioSource.UnPause();
+        }
     }
 }
