@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "GameLimbus1.sln"
+    "dotnet.defaultSolution": "GameLimbus.sln"
 }

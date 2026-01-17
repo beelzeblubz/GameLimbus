@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -13,7 +12,6 @@ public class PlayerMovement : MonoBehaviour
     private float x = 0f;
     private float y = 0f;
     private bool moving = false;
-
 
     void Start()
     {
@@ -32,7 +30,28 @@ public class PlayerMovement : MonoBehaviour
 
     private void Move()
     {
+        // Cek apakah dialogue aktif ATAU popup aktif ATAU transition aktif
+        bool shouldBlockMovement = false;
+        
+        // Cek dialogue aktif
         if (DialogueManager.Instance != null && DialogueManager.Instance.isDialoguesActive)
+        {
+            shouldBlockMovement = true;
+        }
+        
+        // Cek popup aktif dari Keycard
+        if (DialogueKeycard.IsAnyPopupActive)
+        {
+            shouldBlockMovement = true;
+        }
+        
+        // CEK TRANSITION AKTIF DARI LIFT
+        if (DialogueLift.IsAnyTransitionActive) // GANTI DARI IsAnyPopupActive
+        {
+            shouldBlockMovement = true;
+        }
+
+        if (shouldBlockMovement)
         {
             movement = Vector2.zero;
             animator.SetBool("Moving", false);
@@ -42,9 +61,9 @@ public class PlayerMovement : MonoBehaviour
         x = Input.GetAxis("Horizontal");
         y = Input.GetAxis("Vertical");
 
-        movement = new Vector2(x,y);
+        movement = new Vector2(x, y);
         movement.Normalize();
-        rb.MovePosition (rb.position + movement * moveSpeed * Time.deltaTime);
+        rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
     }
 
     private void Animate()
