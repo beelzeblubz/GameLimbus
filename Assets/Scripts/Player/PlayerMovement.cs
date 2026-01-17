@@ -12,10 +12,14 @@ public class PlayerMovement : MonoBehaviour
     private float x = 0f;
     private float y = 0f;
     private bool moving = false;
+    
+    // Static property untuk kontrol dari script lain
+    public static bool IsMovementBlocked { get; set; }
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        IsMovementBlocked = false;
     }
 
     void Update()
@@ -30,8 +34,14 @@ public class PlayerMovement : MonoBehaviour
 
     private void Move()
     {
-        // Cek apakah dialogue aktif ATAU popup aktif ATAU transition aktif
+        // Cek semua kondisi yang memblokir movement
         bool shouldBlockMovement = false;
+        
+        // Cek static property
+        if (IsMovementBlocked)
+        {
+            shouldBlockMovement = true;
+        }
         
         // Cek dialogue aktif
         if (DialogueManager.Instance != null && DialogueManager.Instance.isDialoguesActive)
@@ -45,8 +55,8 @@ public class PlayerMovement : MonoBehaviour
             shouldBlockMovement = true;
         }
         
-        // CEK TRANSITION AKTIF DARI LIFT
-        if (DialogueLift.IsAnyTransitionActive) // GANTI DARI IsAnyPopupActive
+        // Cek transition aktif dari Lift
+        if (DialogueLift.IsAnyTransitionActive)
         {
             shouldBlockMovement = true;
         }
@@ -54,7 +64,8 @@ public class PlayerMovement : MonoBehaviour
         if (shouldBlockMovement)
         {
             movement = Vector2.zero;
-            animator.SetBool("Moving", false);
+            if (animator != null)
+                animator.SetBool("Moving", false);
             return;
         }
 
@@ -77,12 +88,13 @@ public class PlayerMovement : MonoBehaviour
             moving = false;
         }
 
-        if (moving)
+        if (moving && animator != null)
         {
             animator.SetFloat("X", x);
             animator.SetFloat("Y", y);
         }
 
-        animator.SetBool("Moving", moving);
+        if (animator != null)
+            animator.SetBool("Moving", moving);
     }
 }

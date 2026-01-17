@@ -1,167 +1,139 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using System.Collections;
 
-[RequireComponent(typeof(Button))]
-[RequireComponent(typeof(RectTransform))]
-public class ButtonHighlightScale : MonoBehaviour, 
-    IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
+public class ButtonHighlightScale : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     [Header("Scale Settings")]
-    [SerializeField] private float highlightedScale = 1.2f;
-    [SerializeField] private float normalScale = 1f;
-    [SerializeField] private float animationDuration = 0.2f;
-    [SerializeField] private AnimationCurve scaleCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [SerializeField] private float highlightScale = 1.2f;
+    [SerializeField] private float scaleSpeed = 10f;
     
-    [Header("Highlight Options")]
-    [SerializeField] private bool useMouseHighlight = true;
-    [SerializeField] private bool useKeyboardHighlight = true;
-    [SerializeField] private bool resetOnDisable = true;
+    [Header("SFX Settings")]
+    [SerializeField] private AudioClip hoverSFX;
+    [SerializeField] private AudioClip winSFX;
+    [SerializeField] private AudioClip loseSFX;
+    [SerializeField] private float sfxVolume = 0.7f;
+    
+    [Header("Button Type")]
+    [SerializeField] private bool isScissorsButton = false;
+    [SerializeField] private bool isRockButton = false;
+    [SerializeField] private bool isPaperButton = false;
+    
+    [Header("Puzzle Controller")]
+    [SerializeField] private PuzzleController puzzleController;
     
     private RectTransform rectTransform;
+    private Vector3 originalScale;
     private Vector3 targetScale;
-    private Coroutine scaleCoroutine;
-    private bool isHighlighted = false;
+    private bool isInteractable = true;
     
-    void Awake()
+    void Start()
     {
         rectTransform = GetComponent<RectTransform>();
+        originalScale = rectTransform.localScale;
+        targetScale = originalScale;
         
-        // Set initial scale
-        rectTransform.localScale = Vector3.one * normalScale;
-        targetScale = Vector3.one * normalScale;
-    }
-    
-    void OnEnable()
-    {
-        if (!isHighlighted)
+        // Cari PuzzleController jika tidak diassign
+        if (puzzleController == null)
         {
-            rectTransform.localScale = Vector3.one * normalScale;
-            targetScale = Vector3.one * normalScale;
+            puzzleController = FindObjectOfType<PuzzleController>();
         }
-    }
-    
-    void OnDisable()
-    {
-        if (resetOnDisable)
-        {
-            rectTransform.localScale = Vector3.one * normalScale;
-            targetScale = Vector3.one * normalScale;
-            isHighlighted = false;
-        }
-        
-        if (scaleCoroutine != null)
-        {
-            StopCoroutine(scaleCoroutine);
-            scaleCoroutine = null;
-        }
-    }
-    
-    // Mouse hover highlight
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        if (!useMouseHighlight) return;
-        
-        HighlightButton();
-    }
-    
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        if (!useMouseHighlight) return;
-        
-        UnhighlightButton();
-    }
-    
-    // Keyboard/controller selection highlight
-    public void OnSelect(BaseEventData eventData)
-    {
-        if (!useKeyboardHighlight) return;
-        
-        HighlightButton();
-    }
-    
-    public void OnDeselect(BaseEventData eventData)
-    {
-        if (!useKeyboardHighlight) return;
-        
-        UnhighlightButton();
-    }
-    
-    // Public methods untuk manual control
-    public void HighlightButton()
-    {
-        if (isHighlighted) return;
-        
-        isHighlighted = true;
-        targetScale = Vector3.one * highlightedScale;
-        
-        if (scaleCoroutine != null)
-        {
-            StopCoroutine(scaleCoroutine);
-        }
-        
-        scaleCoroutine = StartCoroutine(ScaleToTarget());
-    }
-    
-    public void UnhighlightButton()
-    {
-        if (!isHighlighted) return;
-        
-        isHighlighted = false;
-        targetScale = Vector3.one * normalScale;
-        
-        if (scaleCoroutine != null)
-        {
-            StopCoroutine(scaleCoroutine);
-        }
-        
-        scaleCoroutine = StartCoroutine(ScaleToTarget());
-    }
-    
-    private IEnumerator ScaleToTarget()
-    {
-        Vector3 startScale = rectTransform.localScale;
-        float elapsedTime = 0f;
-        
-        while (elapsedTime < animationDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsedTime / animationDuration);
-            float curveValue = scaleCurve.Evaluate(t);
-            
-            rectTransform.localScale = Vector3.Lerp(startScale, targetScale, curveValue);
-            yield return null;
-        }
-        
-        rectTransform.localScale = targetScale;
-        scaleCoroutine = null;
-    }
-    
-    // Method untuk testing di Inspector
-    [ContextMenu("Test Highlight")]
-    private void TestHighlight()
-    {
-        HighlightButton();
-    }
-    
-    [ContextMenu("Test Unhighlight")]
-    private void TestUnhighlight()
-    {
-        UnhighlightButton();
     }
     
     void Update()
     {
-        // Debug visualization (optional)
-        #if UNITY_EDITOR
-        if (Input.GetKeyDown(KeyCode.H))
+        // Smooth scale animation
+        if (rectTransform.localScale != targetScale)
         {
-            if (!isHighlighted)
-                HighlightButton();
-            else
-                UnhighlightButton();
+            rectTransform.localScale = Vector3.Lerp(
+                rectTransform.localScale, 
+                targetScale, 
+                Time.deltaTime * scaleSpeed
+            );
         }
-        #endif
+    }
+    
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (!isInteractable) return;
+        
+        targetScale = originalScale * highlightScale;
+        
+        // Play hover SFX
+        if (hoverSFX != null)
+        {
+            PlaySFX(hoverSFX);
+        }
+    }
+    
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (!isInteractable) return;
+        
+        targetScale = originalScale;
+    }
+    
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (!isInteractable) return;
+        
+        if (isScissorsButton)
+        {
+            Debug.Log("Scissors selected - WIN!");
+            PlaySFX(winSFX);
+            
+            // Panggil Win() di PuzzleController
+            if (puzzleController != null)
+            {
+                puzzleController.Win();
+            }
+            
+            // Nonaktifkan semua interaksi
+            DisableAllButtons();
+        }
+        else if (isRockButton || isPaperButton)
+        {
+            Debug.Log("Wrong selection - LOSE!");
+            PlaySFX(loseSFX);
+            
+            // Anda bisa tambahkan efek untuk pilihan salah di sini
+            // Misal: shake animation, red flash, dll.
+        }
+    }
+    
+    private void DisableAllButtons()
+    {
+        isInteractable = false;
+        
+        // Nonaktifkan semua button di scene yang sama
+        ButtonHighlightScale[] allButtons = FindObjectsOfType<ButtonHighlightScale>();
+        foreach (var button in allButtons)
+        {
+            button.isInteractable = false;
+            button.targetScale = button.originalScale;
+        }
+    }
+    
+    private void PlaySFX(AudioClip clip)
+    {
+        if (clip == null) return;
+        
+        GameObject audioObject = new GameObject("SFX");
+        AudioSource audioSource = audioObject.AddComponent<AudioSource>();
+        audioSource.clip = clip;
+        audioSource.volume = sfxVolume;
+        audioSource.spatialBlend = 0f;
+        audioSource.Play();
+        Destroy(audioObject, clip.length + 0.1f);
+    }
+    
+    void OnDisable()
+    {
+        // Reset scale saat disabled
+        if (rectTransform != null)
+        {
+            rectTransform.localScale = originalScale;
+            targetScale = originalScale;
+        }
     }
 }

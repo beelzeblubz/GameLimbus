@@ -19,21 +19,24 @@ public class DialogueKeycard : MonoBehaviour
 
     [Header("Dialogue Settings")]
     public Dialogue dialogue;
-    [SerializeField] private Dialogue successDialogue;  // Untuk setelah mendapatkan keycard
+    [SerializeField] private Dialogue successDialogue;
 
     [Header("Keycard Settings")]
     [SerializeField] private string keycardName = "Security Card";
 
     [Header("Pickup Settings")]
-    [SerializeField] private GameObject itemModel;      // Model item yang akan hilang saat diambil
-    [SerializeField] private GameObject keycardPopup;   // UI popup saat dapat KEYCARD
-    [SerializeField] private float popupDuration = 2f;  // Durasi popup tampil
-    [SerializeField] private float fadeOutDuration = 0.5f; // Durasi fade out
+    [SerializeField] private GameObject itemModel;
+    [SerializeField] private GameObject keycardPopup;
+    [SerializeField] private float popupDuration = 2f;
+    [SerializeField] private float fadeOutDuration = 0.5f;
 
     [Header("Audio Settings")]
-    [SerializeField] private AudioClip keycardPickupSFX; // SFX saat dapat keycard
-    [SerializeField] private AudioClip popupShowSFX;     // SFX saat popup muncul
-    [SerializeField] private float sfxVolume = 0.7f;     // Volume SFX
+    [SerializeField] private AudioClip keycardPickupSFX;
+    [SerializeField] private AudioClip popupShowSFX;
+    [SerializeField] private float sfxVolume = 0.7f;
+
+    [Header("Puzzle Settings")]
+    [SerializeField] private PuzzleController puzzleController;
 
     // Status game
     private bool playerInRange = false;
@@ -44,27 +47,22 @@ public class DialogueKeycard : MonoBehaviour
     private Coroutine interactionCoroutine;
     private CanvasGroup currentCanvasGroup;
 
-    // GameManager reference
-    private GameManager gameManager;
-
     // Static property untuk kontrol player movement
     public static bool IsAnyPopupActive { get; private set; }
 
     private void Start()
     {
-        // Cari GameManager di scene
-        gameManager = GameManager.Instance;
-        
-        // Jika ada GameManager, sinkronkan status keycard
-        if (gameManager != null)
+        // Cari PuzzleController jika belum diassign
+        if (puzzleController == null)
         {
-            // Jika sudah punya keycard, sembunyikan model
-            if (gameManager.HasKeycard && itemModel != null)
-            {
-                itemModel.SetActive(false);
-                // Nonaktifkan interaksi juga
-                GetComponent<Collider2D>().enabled = false;
-            }
+            puzzleController = FindObjectOfType<PuzzleController>();
+        }
+        
+        // Jika sudah punya keycard, sembunyikan model
+        if (GameManager.Instance != null && GameManager.Instance.HasKeycard && itemModel != null)
+        {
+            itemModel.SetActive(false);
+            GetComponent<Collider2D>().enabled = false;
         }
         
         // Setup visual
@@ -102,13 +100,11 @@ public class DialogueKeycard : MonoBehaviour
 
         playerInRange = true;
         
-        // PressE
         if (interactionType == InteractionType.PressE && eventDetect != null)
         {
             eventDetect.SetActive(true);
         }
 
-        // AutoTrigger
         if (interactionType == InteractionType.AutoTrigger && !hasTriggered)
         {
             hasTriggered = true;
@@ -122,7 +118,6 @@ public class DialogueKeycard : MonoBehaviour
 
         playerInRange = false;
         
-        // PressE
         if (interactionType == InteractionType.PressE && eventDetect != null)
         {
             eventDetect.SetActive(false);
@@ -136,7 +131,6 @@ public class DialogueKeycard : MonoBehaviour
             HandleInteraction();
         }
         
-        // Close popup dengan E atau Space jika popup aktif
         if (popupActive && (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Space)))
         {
             CloseCurrentPopupWithFade();
@@ -145,13 +139,11 @@ public class DialogueKeycard : MonoBehaviour
 
     private void HandleInteraction()
     {
-        // Hentikan coroutine sebelumnya jika ada
         if (interactionCoroutine != null)
         {
             StopCoroutine(interactionCoroutine);
         }
         
-        // Mulai sequence
         interactionCoroutine = StartCoroutine(KeycardPickupSequence());
     }
 
@@ -160,120 +152,76 @@ public class DialogueKeycard : MonoBehaviour
     {
         Debug.Log("Memulai KeycardPickupSequence");
         
-        // Cek apakah sudah punya keycard
         bool alreadyHasKeycard = false;
-        if (gameManager != null)
+        if (GameManager.Instance != null)
         {
-            alreadyHasKeycard = gameManager.HasKeycard;
+            alreadyHasKeycard = GameManager.Instance.HasKeycard;
         }
         
         if (!alreadyHasKeycard)
         {
-            // STEP 1: Tampilkan dialog dulu
             Debug.Log("STEP 1: Menampilkan dialog...");
             
-            // Gunakan method yang benar untuk menunggu dialog selesai
-            yield return StartCoroutine(ShowDialogueAndWait(dialogue));
+            // Tunggu dialog selesai
+            yield return StartCoroutine(ShowDialogueSimple(dialogue));
             
-            // STEP 2: Beri keycard dan tampilkan popup (SETELAH dialog selesai)
-            Debug.Log("Dialog SELESAI! Sekarang memberi keycard...");
-            GiveKeycard();
+            Debug.Log("Dialog SELESAI! Sekarang membuka puzzle...");
+            
+            // Buka puzzle setelah dialog
+            if (puzzleController != null)
+            {
+                puzzleController.OpenPuzzle();
+                Debug.Log("Puzzle dibuka");
+            }
+            else
+            {
+                Debug.LogError("PuzzleController tidak ditemukan!");
+                // Fallback: langsung beri keycard jika tidak ada puzzle
+                GiveKeycard();
+            }
         }
         else
         {
-            // Jika sudah punya, tampilkan dialog saja
             TriggerDialogue();
         }
         
         interactionCoroutine = null;
     }
 
-    // ========== METHOD YANG BENAR UNTUK MENUNGGU DIALOG ==========
-    private IEnumerator ShowDialogueAndWait(Dialogue dialogueToShow)
+    // ========== METHOD UNTUK DIPANGGIL DARI PUZZLECONTROLLER ==========
+    public void ShowKeycardPopupAfterPuzzle()
     {
-        if (DialogueManager.Instance == null)
+        Debug.Log("=== DIALOGUEKEYCARD: ShowKeycardPopupAfterPuzzle() dipanggil ===");
+        
+        // Beri keycard setelah puzzle selesai
+        GiveKeycard();
+        
+        // Tampilkan popup
+        if (keycardPopup != null)
         {
-            Debug.LogError("DialogueManager.Instance NULL!");
-            yield break;
+            StartCoroutine(ShowPopupWithDelay(keycardPopup, $"✓ {keycardName} terbuka!", true));
+            Debug.Log("Popup keycard ditampilkan");
         }
-        
-        // Reset flag dialog aktif
-        // bool isDialogueFinished = false;
-        
-        // Subscribe ke event atau cara lain untuk tahu kapan dialog selesai
-        // Karena DialogueManager mungkin tidak punya event, kita buat workaround
-        
-        // Cara 1: Simpan status awal
-        bool wasDialogueActive = DialogueManager.Instance.isDialoguesActive;
-        
-        // Mulai dialogue
-        DialogueManager.Instance.StartDialogue(dialogueToShow);
-        
-        // Tunggu sampai dialogue mulai
-        yield return new WaitUntil(() => DialogueManager.Instance.isDialoguesActive);
-        Debug.Log("Dialogue dimulai...");
-        
-        // Sekarang tunggu sampai dialogue selesai
-        yield return new WaitWhile(() => DialogueManager.Instance.isDialoguesActive);
-        Debug.Log("Dialogue SELESAI sepenuhnya!");
-        
-        // Tunggu 1 frame tambahan untuk memastikan
-        yield return null;
+        else
+        {
+            Debug.LogWarning("KeycardPopup null");
+        }
     }
 
-    // ========== ALTERNATIF LEBIH SIMPLE ==========
-    private IEnumerator ShowDialogueSimple(Dialogue dialogueToShow)
-    {
-        if (DialogueManager.Instance == null)
-        {
-            Debug.LogError("DialogueManager.Instance NULL!");
-            yield break;
-        }
-        
-        // Mulai dialogue
-        DialogueManager.Instance.StartDialogue(dialogueToShow);
-        
-        // Tunggu 0.1 detik untuk memastikan dialog sudah mulai
-        yield return new WaitForSeconds(0.1f);
-        
-        // Sekarang tunggu sampai dialogue selesai
-        // Kita check status setiap frame
-        while (true)
-        {
-            // Jika DialogueManager masih ada dan dialog aktif, tunggu
-            if (DialogueManager.Instance != null && DialogueManager.Instance.isDialoguesActive)
-            {
-                yield return null; // Tunggu frame berikutnya
-            }
-            else
-            {
-                // Dialog selesai
-                break;
-            }
-        }
-        
-        Debug.Log("Dialogue selesai, melanjutkan...");
-    }
-
-    public void TriggerDialogue()
-    {
-        if (DialogueManager.Instance == null)
-        {
-            Debug.LogError("DialogueManager.Instance NULL!");
-            return;
-        }
-
-        DialogueManager.Instance.StartDialogue(dialogue);
-    }
-
+    // ========== METHOD UNTUK MEMBERI KEYCARD ==========
     private void GiveKeycard()
     {
-        Debug.Log("=== GIVE KEYCARD ===");
+        Debug.Log("=== MEMBERI KEYCARD ===");
         
         // Simpan status ke GameManager
-        if (gameManager != null)
+        if (GameManager.Instance != null)
         {
-            gameManager.SetKeycard(true, keycardName);
+            GameManager.Instance.SetKeycard(true, keycardName);
+            Debug.Log($"Keycard diberikan: {keycardName}");
+        }
+        else
+        {
+            Debug.LogError("GameManager tidak ditemukan!");
         }
         
         // PUTAR SFX KEYCARD PICKUP
@@ -295,21 +243,38 @@ public class DialogueKeycard : MonoBehaviour
         GetComponent<Collider2D>().enabled = false;
         
         Debug.Log($"Player mendapatkan {keycardName}");
-        
-        // Tampilkan popup - INI DIPANGGIL SETELAH DIALOG SELESAI
-        ShowKeycardPopup();
     }
 
-    private void ShowKeycardPopup()
+    // ========== DIALOGUE SYSTEM ==========
+    private IEnumerator ShowDialogueSimple(Dialogue dialogueToShow)
     {
-        if (keycardPopup != null)
+        if (DialogueManager.Instance == null)
         {
-            StartCoroutine(ShowPopupWithDelay(keycardPopup, $"✓ Mendapatkan {keycardName}!"));
+            Debug.LogError("DialogueManager.Instance NULL!");
+            yield break;
         }
-        else
+        
+        DialogueManager.Instance.StartDialogue(dialogueToShow);
+        
+        yield return new WaitForSeconds(0.1f);
+        
+        while (DialogueManager.Instance != null && DialogueManager.Instance.isDialoguesActive)
         {
-            Debug.LogWarning("KeycardPopup null, skip menampilkan popup");
+            yield return null;
         }
+        
+        Debug.Log("Dialogue selesai");
+    }
+
+    public void TriggerDialogue()
+    {
+        if (DialogueManager.Instance == null)
+        {
+            Debug.LogError("DialogueManager.Instance NULL!");
+            return;
+        }
+
+        DialogueManager.Instance.StartDialogue(dialogue);
     }
 
     // ========== POPUP SYSTEM ==========
@@ -319,20 +284,17 @@ public class DialogueKeycard : MonoBehaviour
         
         yield return null;
         
-        // Update teks jika ada
         Text textComponent = popup.GetComponentInChildren<Text>(true);
         if (textComponent != null)
         {
             textComponent.text = message;
         }
         
-        // Aktifkan GameObject
         popup.SetActive(true);
         currentPopup = popup;
         popupActive = true;
-        IsAnyPopupActive = true; // SET STATIC PROPERTY
+        IsAnyPopupActive = true;
         
-        // Dapatkan CanvasGroup
         CanvasGroup canvasGroup = popup.GetComponent<CanvasGroup>();
         if (canvasGroup == null)
         {
@@ -340,7 +302,6 @@ public class DialogueKeycard : MonoBehaviour
         }
         currentCanvasGroup = canvasGroup;
         
-        // FADE IN
         if (useFade)
         {
             yield return StartCoroutine(FadePopup(canvasGroup, 0f, 1f, 0.3f));
@@ -353,12 +314,10 @@ public class DialogueKeycard : MonoBehaviour
         canvasGroup.interactable = true;
         canvasGroup.blocksRaycasts = true;
         
-        // PUTAR SFX POPUP SHOW
         PlaySFX(popupShowSFX);
         
-        Debug.Log($"Popup {popup.name} aktif. Global status: {IsAnyPopupActive}");
+        Debug.Log($"Popup aktif. Global status: {IsAnyPopupActive}");
         
-        // Mulai auto close
         if (popupCoroutine != null)
             StopCoroutine(popupCoroutine);
         
@@ -384,7 +343,6 @@ public class DialogueKeycard : MonoBehaviour
     {
         yield return new WaitForSeconds(popupDuration);
         
-        // FADE OUT
         if (useFade && canvasGroup != null)
         {
             yield return StartCoroutine(FadePopup(canvasGroup, 1f, 0f, fadeOutDuration));
@@ -428,7 +386,7 @@ public class DialogueKeycard : MonoBehaviour
             
             currentPopup.SetActive(false);
             popupActive = false;
-            IsAnyPopupActive = false; // RESET STATIC PROPERTY
+            IsAnyPopupActive = false;
             
             currentPopup = null;
             currentCanvasGroup = null;
