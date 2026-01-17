@@ -10,18 +10,22 @@ public class PuzzleController : MonoBehaviour
     [SerializeField] private GameObject victory;
     [SerializeField] private GameObject mainGameCanvas;
     
+    [Header("Clickable Objects")]
+    [SerializeField] private List<GameObject> clickableObjects = new List<GameObject>();
+    
     [Header("Settings")]
     [SerializeField] private float puzzleCloseDelay = 2f;
     [SerializeField] private float fadeDuration = 0.5f;
     
     [Header("Audio")]
+    [SerializeField] private AudioClip objectClickSFX;
     [SerializeField] private AudioClip puzzleCompleteSFX;
-    [SerializeField] private AudioClip wrongSFX;
     [SerializeField] private float sfxVolume = 0.7f;
     
     private CanvasGroup puzzleCanvasGroup;
     private DialogueKeycard dialogueKeycardRef;
     private bool puzzleActive = false;
+    private int objectsRemaining;
 
     void Start()
     {
@@ -51,30 +55,160 @@ public class PuzzleController : MonoBehaviour
         puzzleActive = true;
         PlayerMovement.IsMovementBlocked = true;
         
+        Debug.Log("=== MEMBUKA PUZZLE ===");
+        
         // Nonaktifkan main canvas jika ada
         if (mainGameCanvas != null)
         {
             mainGameCanvas.SetActive(false);
         }
         
-        // Reset state
+        // Setup semua benda yang bisa diklik
+        SetupClickableObjects();
+        
+        // Reset state victory
         if (victory != null)
         {
             victory.SetActive(false);
         }
         
-        // Reset alpha
+        // Reset alpha puzzle UI
         if (puzzleCanvasGroup != null)
         {
             puzzleCanvasGroup.alpha = 1f;
         }
         
-        // Aktifkan puzzle
+        // Aktifkan puzzle UI
         if (puzzleUI != null)
         {
             puzzleUI.SetActive(true);
-            Debug.Log("Puzzle dibuka");
+            Debug.Log($"Puzzle UI aktif");
         }
+    }
+    
+    private void SetupClickableObjects()
+    {
+        objectsRemaining = clickableObjects.Count;
+        Debug.Log($"Total benda yang bisa diklik: {objectsRemaining}");
+        
+        foreach (GameObject obj in clickableObjects)
+        {
+            if (obj != null)
+            {
+                // Aktifkan GameObject
+                obj.SetActive(true);
+                
+                // Tambahkan ScaleProtector jika belum ada
+                ScaleProtector scaleProtector = obj.GetComponent<ScaleProtector>();
+                if (scaleProtector == null)
+                {
+                    scaleProtector = obj.AddComponent<ScaleProtector>();
+                }
+                
+                // Force fix scale
+                scaleProtector.ForceFixScale();
+                
+                // Tambahkan ButtonHighlightScale jika belum ada
+                ButtonHighlightScale buttonScript = obj.GetComponent<ButtonHighlightScale>();
+                if (buttonScript == null)
+                {
+                    buttonScript = obj.AddComponent<ButtonHighlightScale>();
+                    
+                    // Setup default
+                    buttonScript.highlightScale = 1.2f;
+                    buttonScript.scaleSpeed = 10f;
+                    buttonScript.sfxVolume = sfxVolume;
+                    
+                    // Setup visual
+                    Image image = obj.GetComponent<Image>();
+                    if (image != null)
+                    {
+                        buttonScript.useColorChange = true;
+                        buttonScript.highlightColor = Color.yellow;
+                    }
+                }
+                
+                // Setup button script
+                buttonScript.SetPuzzleController(this);
+                
+                if (objectClickSFX != null)
+                {
+                    buttonScript.SetClickSFX(objectClickSFX);
+                }
+                
+                // Setup click action
+                System.Action clickAction = () => HandleObjectClick(obj);
+                buttonScript.SetClickAction(clickAction);
+                
+                Debug.Log($"{obj.name} setup complete. Scale: {obj.transform.localScale}");
+            }
+        }
+    }
+    
+    // Dipanggil oleh ButtonHighlightScale saat benda diklik
+    public void HandleObjectClick(GameObject clickedObject)
+    {
+        if (!puzzleActive || clickedObject == null) return;
+        
+        Debug.Log($"Benda diklik: {clickedObject.name}");
+        
+        // Play SFX
+        PlaySFX(objectClickSFX);
+        
+        // Hilangkan benda dengan coroutine
+        StartCoroutine(HideObject(clickedObject));
+        
+        // Kurangi jumlah benda yang tersisa
+        objectsRemaining--;
+        Debug.Log($"Benda tersisa: {objectsRemaining}");
+        
+        // Cek jika semua benda sudah diklik
+        if (objectsRemaining == 0)
+        {
+            Debug.Log("Semua benda sudah diklik! Menang!");
+            StartCoroutine(DelayedWin());
+        }
+    }
+    
+    private IEnumerator HideObject(GameObject obj)
+    {
+        if (obj == null) yield break;
+        
+        // Nonaktifkan button script
+        ButtonHighlightScale buttonScript = obj.GetComponent<ButtonHighlightScale>();
+        if (buttonScript != null)
+        {
+            buttonScript.SetInteractable(false);
+        }
+        
+        // Fade out
+        CanvasGroup canvasGroup = obj.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = obj.AddComponent<CanvasGroup>();
+        }
+        
+        float elapsedTime = 0f;
+        float startAlpha = canvasGroup.alpha;
+        
+        while (elapsedTime < 0.3f)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsedTime / 0.3f);
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, t);
+            yield return null;
+        }
+        
+        canvasGroup.alpha = 0f;
+        
+        // Nonaktifkan GameObject
+        obj.SetActive(false);
+    }
+    
+    private IEnumerator DelayedWin()
+    {
+        yield return new WaitForSeconds(0.5f);
+        Win();
     }
     
     public void ClosePuzzle()
@@ -98,17 +232,11 @@ public class PuzzleController : MonoBehaviour
         if (victory != null)
             victory.SetActive(true);
             
-        // Play SFX
+        // Play SFX kemenangan
         PlaySFX(puzzleCompleteSFX);
         
         // Mulai sequence untuk menutup puzzle
         StartCoroutine(WinSequence());
-    }
-
-    public void Wrong()
-    {
-        Debug.Log("Wrong selection in puzzle.");
-        PlaySFX(wrongSFX);
     }
     
     private IEnumerator WinSequence()
@@ -171,12 +299,6 @@ public class PuzzleController : MonoBehaviour
         audioSource.spatialBlend = 0f;
         audioSource.Play();
         Destroy(audioObject, clip.length + 0.1f);
-    }
-    
-    // Untuk mengecek apakah puzzle sedang aktif
-    public bool IsPuzzleActive()
-    {
-        return puzzleActive;
     }
     
     void OnDisable()
