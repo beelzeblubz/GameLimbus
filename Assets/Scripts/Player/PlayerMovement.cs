@@ -6,12 +6,15 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private Animator animator;
+    [SerializeField] private float initialMovementLockDuration = 1f; // Durasi awal blocking movement
 
     private Rigidbody2D rb;
     private Vector2 movement;
     private float x = 0f;
     private float y = 0f;
     private bool moving = false;
+    private float gameStartTime = 0f;
+    private bool isInitialLockActive = true;
     
     // Static property untuk kontrol dari script lain
     public static bool IsMovementBlocked { get; set; }
@@ -20,10 +23,23 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         IsMovementBlocked = false;
+        
+        // Simpan waktu mulai game
+        gameStartTime = Time.time;
+        isInitialLockActive = true;
+        
+        Debug.Log($"Movement akan terkunci selama {initialMovementLockDuration} detik pertama");
     }
 
     void Update()
     {
+        // Cek apakah masih dalam periode awal blocking
+        if (isInitialLockActive && Time.time - gameStartTime >= initialMovementLockDuration)
+        {
+            isInitialLockActive = false;
+            Debug.Log("Movement lock awal telah berakhir, player bisa bergerak");
+        }
+        
         Animate();
     }
 
@@ -36,6 +52,12 @@ public class PlayerMovement : MonoBehaviour
     {
         // Cek semua kondisi yang memblokir movement
         bool shouldBlockMovement = false;
+        
+        // Cek lock awal game (1 detik pertama)
+        if (isInitialLockActive)
+        {
+            shouldBlockMovement = true;
+        }
         
         // Cek static property
         if (IsMovementBlocked)
@@ -96,5 +118,24 @@ public class PlayerMovement : MonoBehaviour
 
         if (animator != null)
             animator.SetBool("Moving", moving);
+    }
+    
+    // Method untuk manual unlock movement awal (jika diperlukan)
+    public void UnlockInitialMovement()
+    {
+        if (isInitialLockActive)
+        {
+            isInitialLockActive = false;
+            Debug.Log("Initial movement lock dibuka secara manual");
+        }
+    }
+    
+    // Method untuk mengatur durasi lock awal
+    public void SetInitialLockDuration(float duration)
+    {
+        initialMovementLockDuration = duration;
+        gameStartTime = Time.time;
+        isInitialLockActive = true;
+        Debug.Log($"Initial movement lock diatur ke {duration} detik");
     }
 }

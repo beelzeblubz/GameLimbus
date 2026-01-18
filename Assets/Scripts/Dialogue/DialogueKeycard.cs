@@ -42,6 +42,10 @@ public class DialogueKeycard : MonoBehaviour
     [SerializeField] private GameObject instructionToDisable;  // Kolom 1: Instruction yang akan dimatikan
     [SerializeField] private GameObject instructionToEnable;   // Kolom 2: Instruction yang akan dihidupkan
 
+    [Header("Objects to Disable After Popup")]
+    [SerializeField] private GameObject mejaToDisable;  // Meja yang akan dinonaktifkan setelah popup hilang
+    [SerializeField] private float mejaDisableDelay = 0.2f;  // Delay kecil setelah popup hilang
+
     // Status game
     private bool playerInRange = false;
     private bool hasTriggered = false;
@@ -54,6 +58,9 @@ public class DialogueKeycard : MonoBehaviour
     // Static property untuk kontrol player movement
     public static bool IsAnyPopupActive { get; private set; }
 
+    // Reference ke PlayerMovement untuk blocking langsung
+    private PlayerMovement playerMovement;
+
     private void Start()
     {
         // Cari PuzzleController jika belum diassign
@@ -62,11 +69,29 @@ public class DialogueKeycard : MonoBehaviour
             puzzleController = FindObjectOfType<PuzzleController>();
         }
         
+        // Cari PlayerMovement
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerMovement = player.GetComponent<PlayerMovement>();
+            if (playerMovement == null)
+            {
+                Debug.LogWarning("PlayerMovement component tidak ditemukan pada Player");
+            }
+        }
+        
         // Jika sudah punya keycard, sembunyikan model
         if (GameManager.Instance != null && GameManager.Instance.HasKeycard && itemModel != null)
         {
             itemModel.SetActive(false);
             GetComponent<Collider2D>().enabled = false;
+            
+            // Jika sudah punya keycard, nonaktifkan meja juga
+            if (mejaToDisable != null && mejaToDisable.activeSelf)
+            {
+                mejaToDisable.SetActive(false);
+                Debug.Log($"Meja dinonaktifkan di Start karena sudah punya keycard: {mejaToDisable.name}");
+            }
         }
         
         // Setup visual
@@ -259,7 +284,6 @@ public class DialogueKeycard : MonoBehaviour
         {
             instructionToDisable.SetActive(false);
             Debug.Log($"Instruction dimatikan: {instructionToDisable.name}");
-
         }
         
         if (instructionToEnable != null)
@@ -273,39 +297,7 @@ public class DialogueKeycard : MonoBehaviour
         }
     }
 
-    // ========== DIALOGUE SYSTEM ==========
-    private IEnumerator ShowDialogueSimple(Dialogue dialogueToShow)
-    {
-        if (DialogueManager.Instance == null)
-        {
-            Debug.LogError("DialogueManager.Instance NULL!");
-            yield break;
-        }
-        
-        DialogueManager.Instance.StartDialogue(dialogueToShow);
-        
-        yield return new WaitForSeconds(0.1f);
-        
-        while (DialogueManager.Instance != null && DialogueManager.Instance.isDialoguesActive)
-        {
-            yield return null;
-        }
-        
-        Debug.Log("Dialogue selesai");
-    }
-
-    public void TriggerDialogue()
-    {
-        if (DialogueManager.Instance == null)
-        {
-            Debug.LogError("DialogueManager.Instance NULL!");
-            return;
-        }
-
-        DialogueManager.Instance.StartDialogue(dialogue);
-    }
-
-    // ========== POPUP SYSTEM ==========
+    // ========== POPUP SYSTEM DENGAN BLOCKING MOVEMENT ==========
     private IEnumerator ShowPopupWithDelay(GameObject popup, string message, bool useFade = true)
     {
         Debug.Log($"Menampilkan popup: {popup.name}");
@@ -322,6 +314,9 @@ public class DialogueKeycard : MonoBehaviour
         currentPopup = popup;
         popupActive = true;
         IsAnyPopupActive = true;
+        
+        // ========== BLOKIR PERGERAKAN PLAYER ==========
+        BlockPlayerMovement();
         
         CanvasGroup canvasGroup = popup.GetComponent<CanvasGroup>();
         if (canvasGroup == null)
@@ -344,7 +339,7 @@ public class DialogueKeycard : MonoBehaviour
         
         PlaySFX(popupShowSFX);
         
-        Debug.Log($"Popup aktif. Global status: {IsAnyPopupActive}");
+        Debug.Log($"Popup aktif. Player movement diblokir. Global status: {IsAnyPopupActive}");
         
         if (popupCoroutine != null)
             StopCoroutine(popupCoroutine);
@@ -352,19 +347,42 @@ public class DialogueKeycard : MonoBehaviour
         popupCoroutine = StartCoroutine(AutoClosePopupWithFade(canvasGroup, useFade));
     }
 
-    private IEnumerator FadePopup(CanvasGroup canvasGroup, float fromAlpha, float toAlpha, float duration)
+    // ========== METHOD UNTUK BLOKIR MOVEMENT ==========
+    private void BlockPlayerMovement()
     {
-        float elapsedTime = 0f;
+        // Cara 1: Gunakan static property (sudah ada di PlayerMovement)
+        PlayerMovement.IsMovementBlocked = true;
         
-        while (elapsedTime < duration)
+        // Cara 2: Atau langsung ke PlayerMovement component jika ditemukan
+        if (playerMovement != null)
         {
-            elapsedTime += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsedTime / duration);
-            canvasGroup.alpha = Mathf.Lerp(fromAlpha, toAlpha, t);
-            yield return null;
+            // Jika PlayerMovement memiliki method khusus untuk block
+            if (playerMovement.GetType().GetMethod("BlockMovement") != null)
+            {
+                playerMovement.Invoke("BlockMovement", 0f);
+            }
         }
         
-        canvasGroup.alpha = toAlpha;
+        Debug.Log("Player movement diblokir selama popup aktif");
+    }
+
+    // ========== METHOD UNTUK UNBLOCK MOVEMENT ==========
+    private void UnblockPlayerMovement()
+    {
+        // Cara 1: Gunakan static property
+        PlayerMovement.IsMovementBlocked = false;
+        
+        // Cara 2: Atau langsung ke PlayerMovement component jika ditemukan
+        if (playerMovement != null)
+        {
+            // Jika PlayerMovement memiliki method khusus untuk unblock
+            if (playerMovement.GetType().GetMethod("UnblockMovement") != null)
+            {
+                playerMovement.Invoke("UnblockMovement", 0f);
+            }
+        }
+        
+        Debug.Log("Player movement di-unblock");
     }
 
     private IEnumerator AutoClosePopupWithFade(CanvasGroup canvasGroup, bool useFade = true)
@@ -416,6 +434,12 @@ public class DialogueKeycard : MonoBehaviour
             popupActive = false;
             IsAnyPopupActive = false;
             
+            // ========== UNBLOCK PLAYER MOVEMENT ==========
+            UnblockPlayerMovement();
+            
+            // ========== NONAKTIFKAN MEJA SETELAH POPUP HILANG ==========
+            StartCoroutine(DisableMejaAfterDelay());
+            
             currentPopup = null;
             currentCanvasGroup = null;
         }
@@ -425,6 +449,104 @@ public class DialogueKeycard : MonoBehaviour
             StopCoroutine(popupCoroutine);
             popupCoroutine = null;
         }
+        
+        Debug.Log("Popup ditutup, player bisa bergerak kembali");
+    }
+
+    // ========== METHOD UNTUK MENONAKTIFKAN MEJA ==========
+    private IEnumerator DisableMejaAfterDelay()
+    {
+        // Tunggu sedikit setelah popup hilang
+        yield return new WaitForSeconds(mejaDisableDelay);
+        
+        if (mejaToDisable != null && mejaToDisable.activeSelf)
+        {
+            mejaToDisable.SetActive(false);
+            Debug.Log($"Meja dinonaktifkan: {mejaToDisable.name}");
+            
+            // Optional: Tambahkan efek fade out jika meja punya CanvasGroup
+            // StartCoroutine(FadeOutMejaIfPossible());
+        }
+        else if (mejaToDisable != null && !mejaToDisable.activeSelf)
+        {
+            // Debug.Log($"Meja sudah nonaktif: {mejaToDisable.name}");
+        }
+        else
+        {
+            Debug.LogWarning("mejaToDisable null atau tidak ditemukan");
+        }
+    }
+
+    // Optional: Efek fade out untuk meja jika punya CanvasGroup
+    // private IEnumerator FadeOutMejaIfPossible()
+    // {
+    //     if (mejaToDisable == null) yield break;
+        
+    //     CanvasGroup mejaCanvasGroup = mejaToDisable.GetComponent<CanvasGroup>();
+    //     if (mejaCanvasGroup != null)
+    //     {
+    //         float duration = 0.5f;
+    //         float elapsedTime = 0f;
+    //         float startAlpha = mejaCanvasGroup.alpha;
+            
+    //         while (elapsedTime < duration)
+    //         {
+    //             elapsedTime += Time.deltaTime;
+    //             float t = Mathf.Clamp01(elapsedTime / duration);
+    //             mejaCanvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, t);
+    //             yield return null;
+    //         }
+            
+    //         mejaCanvasGroup.alpha = 0f;
+    //         Debug.Log($"Meja fade out selesai: {mejaToDisable.name}");
+    //     }
+    // }
+
+    private IEnumerator FadePopup(CanvasGroup canvasGroup, float fromAlpha, float toAlpha, float duration)
+    {
+        float elapsedTime = 0f;
+        
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsedTime / duration);
+            canvasGroup.alpha = Mathf.Lerp(fromAlpha, toAlpha, t);
+            yield return null;
+        }
+        
+        canvasGroup.alpha = toAlpha;
+    }
+
+    // ========== DIALOGUE SYSTEM ==========
+    private IEnumerator ShowDialogueSimple(Dialogue dialogueToShow)
+    {
+        if (DialogueManager.Instance == null)
+        {
+            Debug.LogError("DialogueManager.Instance NULL!");
+            yield break;
+        }
+        
+        DialogueManager.Instance.StartDialogue(dialogueToShow);
+        
+        yield return new WaitForSeconds(0.1f);
+        
+        while (DialogueManager.Instance != null && DialogueManager.Instance.isDialoguesActive)
+        {
+            yield return null;
+        }
+        
+        Debug.Log("Dialogue selesai");
+    }
+
+    public void TriggerDialogue()
+    {
+        if (DialogueManager.Instance == null)
+        {
+            Debug.LogError("DialogueManager.Instance NULL!");
+            return;
+        }
+
+        DialogueManager.Instance.StartDialogue(dialogue);
     }
 
     // ========== AUDIO METHODS ==========

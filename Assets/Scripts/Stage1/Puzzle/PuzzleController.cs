@@ -274,18 +274,40 @@ public class PuzzleController : MonoBehaviour
         // Aktifkan kembali player movement
         PlayerMovement.IsMovementBlocked = false;
         
+        // ========== PERBAIKAN: Cari DialogueKeycard jika null ==========
+        if (dialogueKeycardRef == null)
+        {
+            Debug.LogWarning("DialogueKeycard reference null, mencoba mencari lagi...");
+            dialogueKeycardRef = FindObjectOfType<DialogueKeycard>();
+        }
+        
         // Tampilkan popup keycard jika ada
         if (dialogueKeycardRef != null)
         {
-            Debug.Log("PuzzleController: Memanggil ShowKeycardPopupAfterPuzzle()");
+            Debug.Log($"PuzzleController: Memanggil ShowKeycardPopupAfterPuzzle() pada {dialogueKeycardRef.gameObject.name}");
             dialogueKeycardRef.ShowKeycardPopupAfterPuzzle();
         }
         else
         {
-            Debug.LogError("DialogueKeycard reference null!");
+            Debug.LogError("DialogueKeycard reference masih null setelah dicari!");
+            // Fallback: Beri keycard langsung
+            GiveKeycardFallback();
         }
         
         Debug.Log("Puzzle selesai dan ditutup");
+    }
+
+    // Fallback method jika DialogueKeycard tidak ditemukan
+    private void GiveKeycardFallback()
+    {
+        Debug.Log("Fallback: Memberi keycard secara langsung");
+        
+        // Simpan status ke GameManager
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetKeycard(true, "Security Card");
+            Debug.Log("Keycard diberikan melalui fallback");
+        }
     }
     
     private void PlaySFX(AudioClip clip)
