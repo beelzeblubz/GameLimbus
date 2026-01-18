@@ -47,6 +47,7 @@ public class DialogueLift : MonoBehaviour
 
     [Header("Instruction Settings")]
     [SerializeField] private GameObject instructionToDisable;  // Kolom 1: Instruction yang akan dimatikan
+    [SerializeField] private GameObject instructionToDisable2;
     [SerializeField] private GameObject instructionToEnable;   // Kolom 2: Instruction yang akan dihidupkan
 
     [Header("Object Activation Settings")]
@@ -206,6 +207,7 @@ public class DialogueLift : MonoBehaviour
                 Debug.Log("STEP 1: Menampilkan dialog lift terbuka...");
                 if (successDialogue != null && DialogueManager.Instance != null)
                 {
+                    instructionToDisable2.SetActive(false);
                     yield return StartCoroutine(ShowDialogueAndWait(successDialogue));
                 }
                 else
@@ -259,6 +261,7 @@ public class DialogueLift : MonoBehaviour
         else
         {
             // Lift sudah terbuka
+
             ShowSimpleMessage("Naik lift ke Stage 2...");
             yield return new WaitForSeconds(1.5f);
             
