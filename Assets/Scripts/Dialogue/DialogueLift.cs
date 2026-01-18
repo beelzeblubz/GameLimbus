@@ -43,18 +43,24 @@ public class DialogueLift : MonoBehaviour
     [Header("Audio Settings")]
     [SerializeField] private AudioClip transitionSFX;
     [SerializeField] private float sfxVolume = 0.7f;
-    [SerializeField] private float audioFadeOutDuration = 1f; // TAMBAHKAN: Durasi fade out backsound
+    [SerializeField] private float audioFadeOutDuration = 1f;
+
+    [Header("Instruction Settings")]
+    [SerializeField] private GameObject instructionToDisable;  // Kolom 1: Instruction yang akan dimatikan
+    [SerializeField] private GameObject instructionToEnable;   // Kolom 2: Instruction yang akan dihidupkan
+
+    [Header("Object Activation Settings")]
+    [SerializeField] private GameObject meja;  // Meja Mika yang akan diaktifkan saat lift terkunci
 
     // Status game
     private bool playerInRange = false;
     private bool hasTriggered = false;
-    private bool isTransitionActive = false;
     private bool isLiftLocked = true;
     private Coroutine transitionCoroutine;
     private Coroutine interactionCoroutine;
     private CanvasGroup blackScreenCanvasGroup;
-    private AudioSource[] backgroundAudioSources; // Untuk menyimpan semua background audio
-    private float[] originalAudioVolumes; // Untuk menyimpan volume asli
+    private AudioSource[] backgroundAudioSources;
+    private float[] originalAudioVolumes;
 
     // GameManager reference
     private GameManager gameManager;
@@ -89,18 +95,22 @@ public class DialogueLift : MonoBehaviour
         
         // Cari semua background audio di scene
         FindBackgroundAudioSources();
+        
+        // Pastikan meja nonaktif di awal jika tidak null
+        if (meja != null)
+        {
+            meja.SetActive(false);
+        }
     }
 
     private void FindBackgroundAudioSources()
     {
-        // Cari semua AudioSource di scene
         AudioSource[] allAudioSources = FindObjectsOfType<AudioSource>();
         List<AudioSource> bgmList = new List<AudioSource>();
         List<float> volumeList = new List<float>();
         
         foreach (AudioSource audioSource in allAudioSources)
         {
-            // Filter: hanya ambil yang loop (backsound) dan bukan SFX
             if (audioSource != null && audioSource.loop && audioSource.isPlaying)
             {
                 bgmList.Add(audioSource);
@@ -224,6 +234,10 @@ public class DialogueLift : MonoBehaviour
             }
             else
             {
+                // ========== SAAT LIFT TERKUNCI ==========
+                Debug.Log("Lift terkunci, player belum punya keycard");
+                
+                // Tampilkan dialog terkunci
                 if (lockedDialogue != null && DialogueManager.Instance != null)
                 {
                     yield return StartCoroutine(ShowDialogueAndWait(lockedDialogue));
@@ -232,7 +246,14 @@ public class DialogueLift : MonoBehaviour
                 {
                     ShowSimpleMessage($"Lift terkunci. Butuh {requiredKeycardName} untuk membukanya.");
                 }
-                Debug.Log("Lift terkunci, butuh keycard");
+                
+                // ========== UBAH INSTRUCTION ==========
+                ChangeInstruction();
+                
+                // ========== AKTIFKAN meja ==========
+                ActivateMeja();
+                
+                Debug.Log($"Lift terkunci. Objective diubah, meja diaktifkan");
             }
         }
         else
@@ -251,6 +272,40 @@ public class DialogueLift : MonoBehaviour
         interactionCoroutine = null;
     }
 
+    // ========== METHOD UNTUK MENGUBAH INSTRUCTION ==========
+    private void ChangeInstruction()
+    {
+        if (instructionToDisable != null)
+        {
+            instructionToDisable.SetActive(false);
+            Debug.Log($"Instruction dimatikan: {instructionToDisable.name}");
+        }
+        
+        if (instructionToEnable != null)
+        {
+            instructionToEnable.SetActive(true);
+            Debug.Log($"Instruction dihidupkan: {instructionToEnable.name}");
+        }
+        else
+        {
+            Debug.LogWarning("instructionToEnable null - tidak ada instruction baru yang diaktifkan");
+        }
+    }
+
+    // ========== METHOD UNTUK MENGAKTIFKAN meja ==========
+    private void ActivateMeja()
+    {
+        if (meja != null)
+        {
+            meja.SetActive(true);
+            Debug.Log($"Meja Mika diaktifkan: {meja.name}");
+        }
+        else
+        {
+            Debug.LogWarning("meja GameObject null - tidak ada meja yang diaktifkan");
+        }
+    }
+
     // ========== TRANSITION SYSTEM DENGAN FADE OUT AUDIO ==========
     private IEnumerator StartTransition()
     {
@@ -260,7 +315,6 @@ public class DialogueLift : MonoBehaviour
             yield break;
         }
         
-        // Simpan sorting order canvas dialogue asli
         int originalDialogueSortOrder = 0;
         Canvas dialogueCanvas = null;
         
@@ -274,21 +328,16 @@ public class DialogueLift : MonoBehaviour
                 Debug.Log($"Dialogue canvas sort order diubah: {originalDialogueSortOrder} -> 100");
             }
         }
-        
-        // Mulai transition
-        isTransitionActive = true;
         IsAnyTransitionActive = true;
         
         Debug.Log("Memulai transition dengan fade out audio...");
         
-        // STEP A: FADE OUT BACKGROUND AUDIO BERSAMAAN DENGAN FADE IN BLACK SCREEN
         Coroutine audioFadeCoroutine = null;
         if (backgroundAudioSources.Length > 0 && audioFadeOutDuration > 0)
         {
             audioFadeCoroutine = StartCoroutine(FadeOutAllBackgroundAudio());
         }
         
-        // STEP B: FADE IN BLACK SCREEN (bersamaan dengan fade out audio)
         blackScreen.SetActive(true);
         
         Canvas blackScreenCanvas = blackScreen.GetComponentInParent<Canvas>();
@@ -299,20 +348,16 @@ public class DialogueLift : MonoBehaviour
         
         yield return StartCoroutine(FadeCanvasGroup(blackScreenCanvasGroup, 0f, 1f, fadeInDuration));
         
-        // STEP C: Tunggu fade out audio selesai (jika lebih lama dari fade in)
         if (audioFadeCoroutine != null)
         {
             yield return audioFadeCoroutine;
             Debug.Log("Fade out audio selesai");
         }
         
-        // PUTAR SFX TRANSITION
         PlaySFX(transitionSFX);
         
-        // TUNGGU sebelum dialogue muncul
         yield return new WaitForSeconds(dialogueDelay);
         
-        // TAMPILKAN TRANSITION DIALOGUE (jika ada)
         if (transitionDialogue != null && DialogueManager.Instance != null)
         {
             Debug.Log("Menampilkan transition dialogue...");
@@ -337,7 +382,6 @@ public class DialogueLift : MonoBehaviour
         
         Debug.Log("Transition dialogue selesai...");
         
-        // TUNGGU sisa waktu black screen
         float elapsedTime = fadeInDuration + dialogueDelay + dialogueDuration;
         if (elapsedTime < blackScreenDuration)
         {
@@ -346,7 +390,6 @@ public class DialogueLift : MonoBehaviour
             yield return new WaitForSeconds(remainingTime);
         }
         
-        // KEMBALIKAN sorting order dialogue canvas ke semula
         if (dialogueCanvas != null)
         {
             dialogueCanvas.sortingOrder = originalDialogueSortOrder;
@@ -372,9 +415,8 @@ public class DialogueLift : MonoBehaviour
         {
             elapsedTime += Time.deltaTime;
             float t = Mathf.Clamp01(elapsedTime / audioFadeOutDuration);
-            float volumeMultiplier = 1f - t; // Dari 1 ke 0
+            float volumeMultiplier = 1f - t;
             
-            // Apply fade ke semua background audio
             for (int i = 0; i < backgroundAudioSources.Length; i++)
             {
                 if (backgroundAudioSources[i] != null && i < originalAudioVolumes.Length)
@@ -386,13 +428,12 @@ public class DialogueLift : MonoBehaviour
             yield return null;
         }
         
-        // Pastikan volume 0 di akhir
         for (int i = 0; i < backgroundAudioSources.Length; i++)
         {
             if (backgroundAudioSources[i] != null)
             {
                 backgroundAudioSources[i].volume = 0f;
-                backgroundAudioSources[i].Stop(); // Optional: stop audio setelah fade out
+                backgroundAudioSources[i].Stop();
                 Debug.Log($"Audio {backgroundAudioSources[i].gameObject.name} di-stop setelah fade out");
             }
         }

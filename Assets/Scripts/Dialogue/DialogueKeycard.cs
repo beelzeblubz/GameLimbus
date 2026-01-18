@@ -38,6 +38,10 @@ public class DialogueKeycard : MonoBehaviour
     [Header("Puzzle Settings")]
     [SerializeField] private PuzzleController puzzleController;
 
+    [Header("Instruction Settings")]
+    [SerializeField] private GameObject instructionToDisable;  // Kolom 1: Instruction yang akan dimatikan
+    [SerializeField] private GameObject instructionToEnable;   // Kolom 2: Instruction yang akan dihidupkan
+
     // Status game
     private bool playerInRange = false;
     private bool hasTriggered = false;
@@ -242,7 +246,31 @@ public class DialogueKeycard : MonoBehaviour
         // Disable collider untuk mencegah interaksi ulang
         GetComponent<Collider2D>().enabled = false;
         
+        // ========== UBAH INSTRUCTION ==========
+        ChangeInstruction();
+        
         Debug.Log($"Player mendapatkan {keycardName}");
+    }
+
+    // ========== METHOD UNSTRUKSI ==========
+    private void ChangeInstruction()
+    {
+        if (instructionToDisable != null)
+        {
+            instructionToDisable.SetActive(false);
+            Debug.Log($"Instruction dimatikan: {instructionToDisable.name}");
+
+        }
+        
+        if (instructionToEnable != null)
+        {
+            instructionToEnable.SetActive(true);
+            Debug.Log($"Instruction dihidupkan: {instructionToEnable.name}");
+        }
+        else
+        {
+            Debug.LogWarning("instructionToEnable null - tidak ada instruction baru yang diaktifkan");
+        }
     }
 
     // ========== DIALOGUE SYSTEM ==========
