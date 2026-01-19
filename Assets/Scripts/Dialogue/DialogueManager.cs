@@ -247,4 +247,11 @@ public class DialogueManager : MonoBehaviour
             audioSource.UnPause();
         }
     }
+
+    public bool IsDialogueActive()
+    {
+        // Gantilah dengan cara mengecek apakah dialog sedang aktif
+        // Contoh sederhana:
+        return dialogueBox != null && dialogueBox.activeInHierarchy;
+    }
 }

@@ -36,6 +36,7 @@ public class DialogueLift : MonoBehaviour
     [Header("Transition Settings")]
     [SerializeField] private GameObject blackScreen;
     [SerializeField] private GameObject fogMerah;
+    [SerializeField] private GameObject instruction;
     [SerializeField] private float fadeInDuration = 1f;
     [SerializeField] private float blackScreenDuration = 3f;
     [SerializeField] private float dialogueDelay = 1f;
@@ -285,6 +286,7 @@ public class DialogueLift : MonoBehaviour
                 Debug.Log("STEP 3: Memulai transition...");
                 yield return StartCoroutine(StartTransition());
                 fogMerah.SetActive(false);
+                instruction.SetActive(false);
                 
                 // STEP 4: Play cutscene (jika ada)
                 if (playCutscene && cutsceneObject != null)
