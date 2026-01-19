@@ -961,10 +961,10 @@ public class PuzzleInventory : MonoBehaviour
         
         Debug.Log("=== INVENTORY PUZZLE DIBUKA ===");
         inventoryPanel.SetActive(true);
-        instruction.SetActive(false);
         
         if (openButton != null)
         {
+            instruction.SetActive(false);
             openButton.SetActive(false);
         }
         

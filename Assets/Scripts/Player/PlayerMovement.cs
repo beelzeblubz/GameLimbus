@@ -40,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
         if (gameOverUI != null)
         {
             gameOverUI.SetActive(false);
-            instruction.SetActive(false);
+            // instruction.SetActive(false);
         }
         else
         {
