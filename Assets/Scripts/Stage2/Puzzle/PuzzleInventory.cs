@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.ComponentModel.Design;
 
 [System.Serializable]
 public class PuzzlePiece
@@ -38,6 +39,10 @@ public class PuzzleInventory : MonoBehaviour
     
     
     [Header("UI Settings")]
+    [SerializeField] private GameObject dialogDeketPintu;
+    [SerializeField] private GameObject instructionToDisable;
+    [SerializeField] private GameObject instructionToEnable;
+    [SerializeField] private GameObject instruction;
     [SerializeField] private GameObject inventoryPanel;
     [SerializeField] private GameObject container;
     [SerializeField] private Transform piecesContainer;
@@ -452,7 +457,11 @@ public class PuzzleInventory : MonoBehaviour
         Debug.Log("=== PUZZLE SELESAI! Syarat untuk lanjut terpenuhi! ===");
         
         isPuzzleSolved = true; // Pastikan flag ini true
+
+        dialogDeketPintu.SetActive(true);
         
+        instructionToDisable.SetActive(false);
+        instructionToEnable.SetActive(true);
         // Play SFX puzzle complete
         PlaySFX(puzzleCompleteSFX);
         
@@ -952,6 +961,7 @@ public class PuzzleInventory : MonoBehaviour
         
         Debug.Log("=== INVENTORY PUZZLE DIBUKA ===");
         inventoryPanel.SetActive(true);
+        instruction.SetActive(false);
         
         if (openButton != null)
         {
@@ -989,6 +999,7 @@ public class PuzzleInventory : MonoBehaviour
         if (inventoryPanel == null) return;
         
         inventoryPanel.SetActive(false);
+        instruction.SetActive(true);
         
         if (openButton != null)
         {

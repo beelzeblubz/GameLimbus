@@ -26,6 +26,7 @@ public class EscapeDialogueTriggered : MonoBehaviour
     [SerializeField] private Dialogue transitionDialogue;
 
     [Header("Puzzle Settings")]
+    // [SerializeField] private GameObject mejaPuzzle;
     [SerializeField] private string requiredPuzzleName = "Escape Puzzle";
     
     [Header("Transition Settings")]
@@ -39,7 +40,7 @@ public class EscapeDialogueTriggered : MonoBehaviour
     [SerializeField] private float dialogueDuration = 1f;
     [SerializeField] private float sceneLoadDelay = 0.5f;
     
-    [SerializeField] private string nextSceneName = "Stage3";
+    [SerializeField] private string nextSceneName = "MainMenu";
 
     [Header("Cutscene Settings")]
     [SerializeField] private GameObject cutsceneObject; // GameObject yang mengandung VideoPlayer
@@ -53,6 +54,7 @@ public class EscapeDialogueTriggered : MonoBehaviour
     [SerializeField] private float audioFadeOutDuration = 1f;
 
     [Header("Instruction Settings")]
+    [SerializeField] private GameObject instruction;
     [SerializeField] private GameObject instructionToDisable;
     [SerializeField] private GameObject instructionToDisable2;
     [SerializeField] private GameObject instructionToEnable;
@@ -359,6 +361,8 @@ public class EscapeDialogueTriggered : MonoBehaviour
 
     private void OnInventoryClosed()
     {
+        instruction.SetActive(false);
+
         if (!isWaitingForInventoryClose) return;
     
         isWaitingForInventoryClose = false;
@@ -512,6 +516,7 @@ public class EscapeDialogueTriggered : MonoBehaviour
     private void OpenPuzzleInventory()
     {
         Debug.Log("Membuka Puzzle Inventory...");
+        // mejaPuzzle.SetActive(true);
         
         if (PuzzleInventory.Instance != null)
         {
