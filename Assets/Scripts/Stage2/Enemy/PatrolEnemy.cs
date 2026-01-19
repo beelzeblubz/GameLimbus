@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class PatrolEnemy : MonoBehaviour
 {
+    [Header("Collider Settings")]
+    [SerializeField] private BoxCollider2D detectionCollider;  // Area deteksi (trigger)
+    [SerializeField] private CircleCollider2D bodyCollider;    // Tubuh enemy (solid)
+    [SerializeField] private Collider2D physicalCollider;
+
     [Header("Movement Settings")]
     [SerializeField] private float speed = 3f;
     [SerializeField] private float startWaitTime = 2f;
@@ -100,7 +105,57 @@ public class PatrolEnemy : MonoBehaviour
         
         waitTime = startWaitTime;
         lastPosition = transform.position;
-        SetupCollider();
+        // SetupCollider();
+
+        // if (physicalCollider == null)
+        // {
+        //     Debug.LogError("Physical collider not assigned!");
+        // }
+        
+        // // Nonaktifkan semua collider lain (jika ada)
+        // Collider2D[] allColliders = GetComponents<Collider2D>();
+        // foreach (Collider2D col in allColliders)
+        // {
+        //     if (col != physicalCollider)
+        //     {
+        //         col.enabled = false; // Nonaktifkan collider non-fisik
+        //     }
+        // }
+
+        SetupDualColliders();
+    }
+
+    private void SetupDualColliders()
+    {
+        // 1. COLLIDER DETEKSI (TRIGGER) - untuk mulai chase
+        if (detectionCollider != null)
+        {
+            detectionCollider.isTrigger = true;  // Trigger mode
+            detectionCollider.enabled = true;
+            
+            // Atur size detection area lebih besar
+            // detectionCollider.size = new Vector2(5f, 5f);
+            Debug.Log($"Detection collider setup - Trigger: {detectionCollider.isTrigger}");
+        }
+        else
+        {
+            Debug.LogWarning("Detection collider not assigned!");
+        }
+        
+        // 2. COLLIDER FISIK (SOLID) - untuk kill player
+        if (bodyCollider != null)
+        {
+            bodyCollider.isTrigger = false;  // Solid mode
+            bodyCollider.enabled = true;
+            
+            // Atur size tubuh enemy
+            // bodyCollider.radius = 1f;
+            Debug.Log($"Body collider setup - Trigger: {bodyCollider.isTrigger}");
+        }
+        else
+        {
+            Debug.LogWarning("Body collider not assigned!");
+        }
     }
     
     private void InitializeChaseVisuals()
@@ -125,6 +180,26 @@ public class PatrolEnemy : MonoBehaviour
     
     void Update()
     {
+        // ========== CEK APAKAH MOVEMENT DIBLOKIR ==========
+        if (IsMovementBlocked())
+        {
+            // Hentikan semua movement
+            rb.velocity = Vector2.zero;
+            movement = Vector2.zero;
+            x = 0f;
+            y = 0f;
+            moving = false;
+            
+            // Update animator ke state idle
+            if (animator != null)
+            {
+                animator.SetBool("Moving", false);
+            }
+            
+            return; // Skip semua logic movement
+        }
+        // ==================================================
+        
         if (player == null) FindPlayer();
         
         CheckIfStuck();
@@ -146,7 +221,6 @@ public class PatrolEnemy : MonoBehaviour
                 {
                     if (Vector2.Distance(transform.position, lastKnownPlayerPosition) > 0.5f)
                     {
-                        // MoveToPosition(lastKnownPlayerPosition, chaseSpeed);
                         if (Vector2.Distance(transform.position, lastKnownPlayerPosition) <= 0.5f)
                         {
                             isChasing = false;
@@ -171,8 +245,41 @@ public class PatrolEnemy : MonoBehaviour
     
     void FixedUpdate()
     {
+        // ========== CEK APAKAH MOVEMENT DIBLOKIR ==========
+        if (IsMovementBlocked())
+        {
+            rb.velocity = Vector2.zero;
+            return; // Skip semua physics movement
+        }
+        // ==================================================
+        
         ApplyMovement();
     }
+    
+    // ========== METHOD BARU: CEK APAKAH MOVEMENT DIBLOKIR ==========
+    private bool IsMovementBlocked()
+    {
+        // 1. Cek apakah sedang ada dialogue aktif
+        if (DialogueManager.Instance != null && DialogueManager.Instance.isDialoguesActive)
+        {
+            return true;
+        }
+        
+        // 2. Cek apakah inventory puzzle sedang dibuka
+        if (PuzzleInventory.Instance != null && PuzzleInventory.Instance.IsInventoryOpen)
+        {
+            return true;
+        }
+        
+        // 3. Cek apakah ada popup puzzle piece aktif
+        if (JigsawPuzzleCollector.IsAnyPopupActive)
+        {
+            return true;
+        }
+        
+        return false;
+    }
+    // ================================================================
     
     private void ApplyMovement()
     {
@@ -375,8 +482,6 @@ public class PatrolEnemy : MonoBehaviour
     {
         if (moveSpots.Length == 0) return;
         
-        // FaceMovementDirection(moveSpots[currentSpot].position);
-        
         if (Vector2.Distance(transform.position, moveSpots[currentSpot].position) < patrolDistanceThreshold)
         {
             if (waitTime <= 0)
@@ -434,37 +539,17 @@ public class PatrolEnemy : MonoBehaviour
         if (player == null) return;
         
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
-        // FaceMovementDirection(player.position);
     }
     
-    // private void MoveToPosition(Vector2 targetPosition, float moveSpeed)
+    // private void SetupCollider()
     // {
-    //     FaceMovementDirection(targetPosition);
-    // }
-    
-    // private void FaceMovementDirection(Vector2 targetPosition)
-    // {
-    //     Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
-        
-    //     if (direction.x > 0)
+    //     Collider2D collider = GetComponent<Collider2D>();
+    //     if (collider == null)
     //     {
-    //         transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
-    //     }
-    //     else if (direction.x < 0)
-    //     {
-    //         transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+    //         BoxCollider2D boxCollider = gameObject.AddComponent<BoxCollider2D>();
+    //         boxCollider.size = new Vector2(0.8f, 0.8f);
     //     }
     // }
-    
-    private void SetupCollider()
-    {
-        Collider2D collider = GetComponent<Collider2D>();
-        if (collider == null)
-        {
-            BoxCollider2D boxCollider = gameObject.AddComponent<BoxCollider2D>();
-            boxCollider.size = new Vector2(0.8f, 0.8f);
-        }
-    }
     
     private void OnCollisionEnter2D(Collision2D collision)
     {

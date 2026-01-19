@@ -27,6 +27,11 @@ public class Pause : MonoBehaviour
         Time.timeScale = 1f; // Lanjutkan waktu dalam game
     }
 
+    public void Restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
     public void BacktoMainMenu()
     {
         SceneManager.LoadScene("MainMenu");
