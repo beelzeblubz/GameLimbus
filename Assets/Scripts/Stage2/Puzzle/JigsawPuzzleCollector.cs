@@ -175,7 +175,7 @@ public class JigsawPuzzleCollector : MonoBehaviour
     private IEnumerator PuzzlePiecePickupSequence()
     {
         Debug.Log($"=== PICKUP SEQUENCE START: Piece {pieceID} ===");
-    
+
         bool alreadyHasPiece = false;
         if (PuzzleInventory.Instance != null)
         {
@@ -197,11 +197,26 @@ public class JigsawPuzzleCollector : MonoBehaviour
             // Tampilkan popup piece
             if (puzzlePiecePopup != null)
             {
-                StartCoroutine(ShowPiecePopup());
+                yield return StartCoroutine(ShowPiecePopup()); // ← UBAH jadi yield return
             }
             else
             {
                 Debug.LogError("PuzzlePiecePopup is null!");
+            }
+            
+            // ========== CEK JIKA INI PIECE TERAKHIR ==========
+            if (PuzzleInventory.Instance != null && PuzzleInventory.Instance.IsPuzzleSolved())
+            {
+                Debug.Log("Ini piece terakhir! Menampilkan success dialog...");
+                
+                // Tunggu sebentar sebelum tampilkan success dialog
+                yield return new WaitForSeconds(0.5f);
+                
+                // Tampilkan success dialogue
+                if (successDialogue != null && DialogueManager.Instance != null)
+                {
+                    yield return StartCoroutine(ShowDialogueSimple(successDialogue));
+                }
             }
         }
         else
@@ -301,11 +316,18 @@ public class JigsawPuzzleCollector : MonoBehaviour
         
         Debug.Log($"Popup aktif untuk piece {pieceID}");
         
+        // ========== TUNGGU SAMPAI POPUP SELESAI ==========
         // Auto close setelah beberapa detik
-        if (popupCoroutine != null)
-            StopCoroutine(popupCoroutine);
+        yield return new WaitForSeconds(popupDuration);
         
-        popupCoroutine = StartCoroutine(AutoClosePopupWithFade(canvasGroup, true));
+        // Fade out
+        yield return StartCoroutine(FadePopup(canvasGroup, 1f, 0f, fadeOutDuration));
+        
+        // Close popup
+        CloseCurrentPopup();
+        
+        Debug.Log($"Popup selesai untuk piece {pieceID}");
+        // ================================================
     }
 
     private void SetupPopupUI()
@@ -471,17 +493,17 @@ public class JigsawPuzzleCollector : MonoBehaviour
         }
     }
 
-    private IEnumerator AutoClosePopupWithFade(CanvasGroup canvasGroup, bool useFade = true)
-    {
-        yield return new WaitForSeconds(popupDuration);
+    // private IEnumerator AutoClosePopupWithFade(CanvasGroup canvasGroup, bool useFade = true)
+    // {
+    //     yield return new WaitForSeconds(popupDuration);
         
-        if (useFade && canvasGroup != null)
-        {
-            yield return StartCoroutine(FadePopup(canvasGroup, 1f, 0f, fadeOutDuration));
-        }
+    //     if (useFade && canvasGroup != null)
+    //     {
+    //         yield return StartCoroutine(FadePopup(canvasGroup, 1f, 0f, fadeOutDuration));
+    //     }
         
-        CloseCurrentPopup();
-    }
+    //     CloseCurrentPopup();
+    // }
 
     private void CloseCurrentPopupWithFade()
     {
@@ -525,11 +547,13 @@ public class JigsawPuzzleCollector : MonoBehaviour
             
             currentPopup = null;
             currentCanvasGroup = null;
+            
+            Debug.Log("Popup ditutup");
         }
         
+        // Bersihkan coroutine reference
         if (popupCoroutine != null)
         {
-            StopCoroutine(popupCoroutine);
             popupCoroutine = null;
         }
     }

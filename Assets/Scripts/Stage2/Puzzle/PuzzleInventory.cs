@@ -36,11 +36,13 @@ public class PuzzleInventory : MonoBehaviour
 {
     public static PuzzleInventory Instance { get; private set; }
     
+    
     [Header("UI Settings")]
     [SerializeField] private GameObject inventoryPanel;
     [SerializeField] private GameObject container;
     [SerializeField] private Transform piecesContainer;
     [SerializeField] private GameObject pieceUIPrefab;
+    [SerializeField] private GameObject openButton;
     [SerializeField] private Button closeButton;
     [SerializeField] private Text progressText;
     
@@ -55,6 +57,7 @@ public class PuzzleInventory : MonoBehaviour
     [SerializeField] private int gridColumns = 3;
     [SerializeField] private float gridSpacing = 10f;
     [SerializeField] private float slotSize = 200f; // Ukuran slot untuk menampung foto besar
+    [SerializeField] private GameObject completePuzzleImageObject;
     
     [Header("Draggable Piece Settings")]
     [SerializeField] private float pieceWidth = 1024f; // Lebar foto
@@ -74,7 +77,8 @@ public class PuzzleInventory : MonoBehaviour
     private List<PuzzlePiece> puzzlePieces = new List<PuzzlePiece>();
     private List<PuzzleSlot> puzzleSlots = new List<PuzzleSlot>();
     private List<GameObject> draggablePieces = new List<GameObject>();
-    private bool isInventoryOpen = true;
+    private bool isInventoryOpen = false;
+    public bool IsInventoryOpen => isInventoryOpen;
     private bool isPuzzleSolved = false;
     
     private void Awake()
@@ -211,6 +215,12 @@ public class PuzzleInventory : MonoBehaviour
         if (victoryPanel != null)
         {
             victoryPanel.SetActive(false);
+        }
+
+        if (completePuzzleImageObject != null)
+        {
+            completePuzzleImageObject.SetActive(false);
+            Debug.Log("Complete Puzzle Image Object dinonaktifkan di Start");
         }
         
         if (closeButton != null)
@@ -426,24 +436,97 @@ public class PuzzleInventory : MonoBehaviour
         
         UpdateUI();
         
-        // TIDAK AUTO-SELESAI, hanya notifikasi semua piece terkumpul
-        if (IsPuzzleComplete())
+        // AUTO-SELESAI saat semua foto terkumpul (TANPA perlu menyusun)
+        if (IsPuzzleComplete() && !isPuzzleSolved)
         {
-            OnAllPiecesCollected(); // Method baru untuk notifikasi
+            isPuzzleSolved = true; // LANGSUNG SET SOLVED
+            OnAllPiecesCollected();
         }
     }
     
     // Method baru: Notifikasi semua piece sudah dikumpulkan (tapi belum disusun)
+    // Method: Semua piece sudah dikumpulkan = PUZZLE SELESAI
     private void OnAllPiecesCollected()
     {
-        Debug.Log("=== SEMUA PIECE TELAH DIKUMPULKAN! ===");
-        Debug.Log("Buka Inventory (tekan I) dan susun puzzle untuk menyelesaikan!");
+        Debug.Log("=== 🎉 SEMUA FOTO TELAH DIKUMPULKAN! 🎉 ===");
+        Debug.Log("=== PUZZLE SELESAI! Syarat untuk lanjut terpenuhi! ===");
         
-        // Play SFX collection complete (berbeda dengan puzzle solved)
+        isPuzzleSolved = true; // Pastikan flag ini true
+        
+        // Play SFX puzzle complete
         PlaySFX(puzzleCompleteSFX);
         
-        // Bisa tambahkan notifikasi UI di sini
-        // Misalnya: tampilkan text "Semua foto terkumpul! Buka inventory untuk menyusun puzzle"
+        // Update progress text
+        if (progressText != null)
+        {
+            progressText.text = $"{totalPieces}/{totalPieces} Pieces - SELESAI!";
+            progressText.color = Color.green;
+        }
+        
+        // JANGAN tampilkan victory panel di sini
+        // Victory panel akan ditampilkan saat buka inventory setelah puzzle selesai
+    }
+
+    // Method untuk menampilkan foto utuh saat buka inventory setelah puzzle selesai
+    private void ShowCompletePuzzleImage()
+    {
+        if (completePuzzleImageObject == null)
+        {
+            Debug.LogWarning("Complete Puzzle Image Object belum di-assign!");
+            return;
+        }
+        
+        Debug.Log("Menampilkan foto utuh hasil puzzle...");
+        
+        // Sembunyikan semua draggable pieces
+        foreach (GameObject piece in draggablePieces)
+        {
+            piece.SetActive(false);
+        }
+        
+        // Sembunyikan semua slot
+        foreach (PuzzleSlot slot in puzzleSlots)
+        {
+            if (slot.slotObject != null)
+            {
+                slot.slotObject.SetActive(false);
+            }
+        }
+        
+        // Sembunyikan pieces container (area kiri)
+        if (piecesContainer != null)
+        {
+            piecesContainer.gameObject.SetActive(false);
+        }
+        
+        // Sembunyikan puzzle grid container (area kanan)
+        if (puzzleGridContainer != null)
+        {
+            puzzleGridContainer.gameObject.SetActive(false);
+        }
+        
+        // AKTIFKAN Complete Puzzle Image GameObject
+        completePuzzleImageObject.SetActive(true);
+        
+        Debug.Log($"Complete Puzzle Image Object diaktifkan: {completePuzzleImageObject.name}");
+        
+        // Tampilkan victory panel
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(true);
+        }
+        
+        if (victoryText != null)
+        {
+            victoryText.text = "PUZZLE SELESAI!\nSemua Foto Terkumpul!";
+        }
+        
+        // Update progress text
+        if (progressText != null)
+        {
+            progressText.text = " ";
+            progressText.color = Color.yellow;
+        }
     }
     
     public bool HasPiece(int pieceID)
@@ -721,77 +804,52 @@ public class PuzzleInventory : MonoBehaviour
     
     private void CheckPuzzleCompletion()
     {
-        // Cek apakah SEMUA slot sudah terisi dengan BENAR
-        bool allCorrect = true;
-        int correctCount = 0;
+        // METHOD INI TIDAK DIPERLUKAN LAGI
+        // Puzzle selesai otomatis saat semua foto terkumpul
         
+        // Tapi tetap update progress untuk visual feedback
+        int correctCount = 0;
         foreach (PuzzleSlot slot in puzzleSlots)
         {
-            if (!slot.isCorrectPosition || slot.placedPiece == null)
-            {
-                allCorrect = false;
-            }
-            else
+            if (slot.isCorrectPosition && slot.placedPiece != null)
             {
                 correctCount++;
             }
         }
         
-        Debug.Log($"Progress: {correctCount}/{puzzleSlots.Count} pieces benar");
-        
-        // Update progress text
-        if (progressText != null)
-        {
-            progressText.text = $"{correctCount}/{puzzleSlots.Count} Pieces Correct";
-            
-            if (correctCount == puzzleSlots.Count)
-            {
-                progressText.color = Color.green;
-            }
-            else
-            {
-                progressText.color = Color.white;
-            }
-        }
-        
-        // PUZZLE SELESAI hanya jika SEMUA piece di tempat yang BENAR
-        if (allCorrect && !isPuzzleSolved)
-        {
-            isPuzzleSolved = true;
-            OnPuzzleSolved();
-        }
+        Debug.Log($"Progress: {correctCount}/{puzzleSlots.Count} pieces disusun");
     }
     
-    private void OnPuzzleSolved()
-    {
-        Debug.Log("=== 🎉 PUZZLE BERHASIL DISELESAIKAN! 🎉 ===");
+    // private void OnPuzzleSolved()
+    // {
+    //     Debug.Log("=== 🎉 PUZZLE BERHASIL DISELESAIKAN! 🎉 ===");
         
-        PlaySFX(puzzleCompleteSFX);
+    //     PlaySFX(puzzleCompleteSFX);
         
-        // Tampilkan victory panel
-        if (victoryPanel != null)
-        {
-            victoryPanel.SetActive(true);
-        }
+    //     // Tampilkan victory panel
+    //     if (victoryPanel != null)
+    //     {
+    //         victoryPanel.SetActive(true);
+    //     }
         
-        if (victoryText != null)
-        {
-            victoryText.text = "SELAMAT!\nANDA MENANG!\n\nPuzzle Berhasil Diselesaikan!";
-        }
+    //     if (victoryText != null)
+    //     {
+    //         victoryText.text = "SELAMAT!\nANDA MENANG!\n\nPuzzle Berhasil Diselesaikan!";
+    //     }
         
-        // Lock semua piece agar tidak bisa digerakkan lagi
-        foreach (GameObject pieceObj in draggablePieces)
-        {
-            DraggablePuzzlePiece draggable = pieceObj.GetComponent<DraggablePuzzlePiece>();
-            if (draggable != null)
-            {
-                draggable.SetLocked(true);
-            }
-        }
+    //     // Lock semua piece agar tidak bisa digerakkan lagi
+    //     foreach (GameObject pieceObj in draggablePieces)
+    //     {
+    //         DraggablePuzzlePiece draggable = pieceObj.GetComponent<DraggablePuzzlePiece>();
+    //         if (draggable != null)
+    //         {
+    //             draggable.SetLocked(true);
+    //         }
+    //     }
         
-        // Bisa trigger event lain di sini, misalnya buka pintu
-        // GameManager.Instance.OnPuzzleSolved();
-    }
+    //     // Bisa trigger event lain di sini, misalnya buka pintu
+    //     // GameManager.Instance.OnPuzzleSolved();
+    // }
     
     private void ResetPuzzlePositions()
     {
@@ -894,20 +952,93 @@ public class PuzzleInventory : MonoBehaviour
         
         Debug.Log("=== INVENTORY PUZZLE DIBUKA ===");
         inventoryPanel.SetActive(true);
+        
+        if (openButton != null)
+        {
+            openButton.SetActive(false);
+        }
+        
         isInventoryOpen = true;
         PlayerMovement.IsMovementBlocked = true;
-        UpdateUI();
+        
+        // Jika puzzle sudah selesai, tampilkan foto utuh
+        if (isPuzzleSolved)
+        {
+            ShowCompletePuzzleImage();
+        }
+        else
+        {
+            UpdateUI();
+        }
         
         Debug.Log($"Inventory Panel aktif: {inventoryPanel.activeSelf}");
     }
     
+    // public void CloseInventory()
+    // {
+    //     if (inventoryPanel == null) return;
+        
+    //     inventoryPanel.SetActive(false);
+    //     openButton.SetActive(true);
+    //     isInventoryOpen = false;
+    //     PlayerMovement.IsMovementBlocked = false;
+    // }
+
     public void CloseInventory()
     {
         if (inventoryPanel == null) return;
         
         inventoryPanel.SetActive(false);
+        
+        if (openButton != null)
+        {
+            openButton.SetActive(true);
+        }
+        
+        // ========== TAMBAHKAN INI ==========
+        // Sembunyikan complete puzzle image jika aktif
+        if (isPuzzleSolved && completePuzzleImageObject != null && completePuzzleImageObject.activeSelf)
+        {
+            HideCompletePuzzleImage();
+        }
+        // ===================================
+        
         isInventoryOpen = false;
         PlayerMovement.IsMovementBlocked = false;
+    }
+
+    private void HideCompletePuzzleImage()
+    {
+        if (completePuzzleImageObject != null)
+        {
+            completePuzzleImageObject.SetActive(false);
+        }
+        
+        // Tampilkan kembali pieces dan grid container
+        if (piecesContainer != null)
+        {
+            piecesContainer.gameObject.SetActive(true);
+        }
+        
+        if (puzzleGridContainer != null)
+        {
+            puzzleGridContainer.gameObject.SetActive(true);
+        }
+        
+        // Tampilkan kembali draggable pieces
+        foreach (GameObject piece in draggablePieces)
+        {
+            piece.SetActive(true);
+        }
+        
+        // Tampilkan kembali slot
+        foreach (PuzzleSlot slot in puzzleSlots)
+        {
+            if (slot.slotObject != null)
+            {
+                slot.slotObject.SetActive(true);
+            }
+        }
     }
     
     private void OnPuzzleComplete()
