@@ -33214,7 +33214,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &814165472
 Transform:
   m_ObjectHideFlags: 0
@@ -33224,8 +33224,8 @@ Transform:
   m_GameObject: {fileID: 814165471}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10.1512, y: -1.8579, z: 0}
-  m_LocalScale: {x: 3.112938, y: 4.0146823, z: 1}
+  m_LocalPosition: {x: 10.0384, y: -0.0588, z: 0}
+  m_LocalScale: {x: 3.338626, y: 0.41651937, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 429230956}
@@ -33257,7 +33257,7 @@ MonoBehaviour:
     - character:
         name: Kino
         charIcon: {fileID: 21300000, guid: 92980fcff04640e42b8094973538d77f, type: 3}
-      line: Ada yang salah.. Lalu lift ini...
+      line: Ada yang salah.. Lalu lift ini... Untungnya menyala, tetapi...
     - character:
         name: 
         charIcon: {fileID: 0}
@@ -39086,8 +39086,8 @@ Transform:
   m_GameObject: {fileID: 1119878878}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.2576, y: -1.8388, z: 0}
-  m_LocalScale: {x: 7.1633472, y: 3.9831092, z: 1}
+  m_LocalPosition: {x: 7.6476, y: -1.8388, z: 0}
+  m_LocalScale: {x: 2.383588, y: 3.9831092, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 429230956}
@@ -59434,6 +59434,10 @@ MonoBehaviour:
         name: Kino
         charIcon: {fileID: 21300000, guid: 92980fcff04640e42b8094973538d77f, type: 3}
       line: Aduh, hp ku juga kenapa mati sih...
+    - character:
+        name: Kino
+        charIcon: {fileID: 21300000, guid: f080a536dced39e479829767ba4b29c7, type: 3}
+      line: Aku harus keluar dari sini... Aku harap liftnya tetap menyala...
 --- !u!61 &1841697710
 BoxCollider2D:
   m_ObjectHideFlags: 0
