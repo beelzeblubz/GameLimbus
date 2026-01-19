@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Video; // Tambahkan ini untuk VideoPlayer
 
 public class DialogueLift : MonoBehaviour
 {
@@ -34,11 +35,18 @@ public class DialogueLift : MonoBehaviour
     
     [Header("Transition Settings")]
     [SerializeField] private GameObject blackScreen;
+    [SerializeField] private GameObject fogMerah;
     [SerializeField] private float fadeInDuration = 1f;
     [SerializeField] private float blackScreenDuration = 3f;
     [SerializeField] private float dialogueDelay = 1f;
     [SerializeField] private float dialogueDuration = 1f;
     [SerializeField] private float sceneLoadDelay = 0.5f;
+
+    [Header("Cutscene Settings")]
+    [SerializeField] private GameObject cutsceneObject; // GameObject yang mengandung VideoPlayer
+    [SerializeField] private bool playCutscene = true;
+    [SerializeField] private float cutsceneDelay = 0.5f; // Delay sebelum memulai cutscene
+    [SerializeField] private bool disableBlackScreenDuringCutscene = true;
 
     [Header("Audio Settings")]
     [SerializeField] private AudioClip transitionSFX;
@@ -59,9 +67,14 @@ public class DialogueLift : MonoBehaviour
     private bool isLiftLocked = true;
     private Coroutine transitionCoroutine;
     private Coroutine interactionCoroutine;
+    private Coroutine cutsceneCoroutine;
     private CanvasGroup blackScreenCanvasGroup;
     private AudioSource[] backgroundAudioSources;
     private float[] originalAudioVolumes;
+    
+    // Cutscene components
+    private VideoPlayer videoPlayer;
+    private AudioSource videoAudioSource;
 
     // GameManager reference
     private GameManager gameManager;
@@ -94,6 +107,9 @@ public class DialogueLift : MonoBehaviour
             blackScreenCanvasGroup = blackScreen.GetComponent<CanvasGroup>();
         }
         
+        // Setup cutscene object
+        InitializeCutscene();
+        
         // Cari semua background audio di scene
         FindBackgroundAudioSources();
         
@@ -101,6 +117,35 @@ public class DialogueLift : MonoBehaviour
         if (meja != null)
         {
             meja.SetActive(false);
+        }
+    }
+
+    private void InitializeCutscene()
+    {
+        if (cutsceneObject != null)
+        {
+            // Cari VideoPlayer di cutsceneObject
+            videoPlayer = cutsceneObject.GetComponent<VideoPlayer>();
+            if (videoPlayer == null)
+            {
+                videoPlayer = cutsceneObject.GetComponentInChildren<VideoPlayer>();
+            }
+            
+            // Cari AudioSource untuk video
+            videoAudioSource = cutsceneObject.GetComponent<AudioSource>();
+            if (videoAudioSource == null)
+            {
+                videoAudioSource = cutsceneObject.GetComponentInChildren<AudioSource>();
+            }
+            
+            // Nonaktifkan cutscene di awal
+            cutsceneObject.SetActive(false);
+            
+            Debug.Log($"Cutscene initialized: VideoPlayer={(videoPlayer != null)}, AudioSource={(videoAudioSource != null)}");
+        }
+        else
+        {
+            Debug.LogWarning("CutsceneObject belum di-assign di Inspector!");
         }
     }
 
@@ -177,6 +222,13 @@ public class DialogueLift : MonoBehaviour
         {
             HandleInteraction();
         }
+        
+        // Skip cutscene dengan tombol Escape atau Space
+        if (cutsceneObject != null && cutsceneObject.activeSelf && 
+            (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Space)))
+        {
+            SkipCutscene();
+        }
     }
 
     private void HandleInteraction()
@@ -207,7 +259,10 @@ public class DialogueLift : MonoBehaviour
                 Debug.Log("STEP 1: Menampilkan dialog lift terbuka...");
                 if (successDialogue != null && DialogueManager.Instance != null)
                 {
-                    instructionToDisable2.SetActive(false);
+                    if (instructionToDisable2 != null)
+                    {
+                        instructionToDisable2.SetActive(false);
+                    }
                     yield return StartCoroutine(ShowDialogueAndWait(successDialogue));
                 }
                 else
@@ -229,9 +284,17 @@ public class DialogueLift : MonoBehaviour
                 // STEP 3: Mulai transition dengan layar hitam
                 Debug.Log("STEP 3: Memulai transition...");
                 yield return StartCoroutine(StartTransition());
+                fogMerah.SetActive(false);
                 
-                // STEP 4: Load scene
-                Debug.Log("STEP 4: Loading scene...");
+                // STEP 4: Play cutscene (jika ada)
+                if (playCutscene && cutsceneObject != null)
+                {
+                    Debug.Log("STEP 4: Memainkan cutscene...");
+                    yield return StartCoroutine(PlayCutscene());
+                }
+                
+                // STEP 5: Load scene
+                Debug.Log("STEP 5: Loading scene...");
                 StartCoroutine(LoadNextScene());
             }
             else
@@ -261,18 +324,115 @@ public class DialogueLift : MonoBehaviour
         else
         {
             // Lift sudah terbuka
-
             ShowSimpleMessage("Naik lift ke Stage 2...");
             yield return new WaitForSeconds(1.5f);
             
             // Mulai transition
             yield return StartCoroutine(StartTransition());
             
+            // Play cutscene (jika ada)
+            if (playCutscene && cutsceneObject != null)
+            {
+                yield return StartCoroutine(PlayCutscene());
+            }
+            
             // Load scene
             StartCoroutine(LoadNextScene());
         }
         
         interactionCoroutine = null;
+    }
+
+    // ========== CUTSCENE SYSTEM ==========
+    private IEnumerator PlayCutscene()
+    {
+        Debug.Log("Memulai cutscene...");
+        
+        // Tunggu sebentar sebelum memulai cutscene
+        yield return new WaitForSeconds(cutsceneDelay);
+        
+        // Aktifkan cutscene object
+
+        yield return new WaitForSeconds(0.2f);
+
+        // Nonaktifkan black screen jika diatur
+        if (disableBlackScreenDuringCutscene && blackScreen != null)
+        {
+            blackScreen.SetActive(false);
+            Debug.Log("Black screen dinonaktifkan selama cutscene");
+        }
+
+        cutsceneObject.SetActive(true);
+        // yield return new WaitForSeconds(0.2f);
+        
+        
+        // Setup VideoPlayer jika ada
+        if (videoPlayer != null)
+        {
+            // if (disableBlackScreenDuringCutscene && blackScreen != null)
+            // {
+            //     blackScreen.SetActive(false);
+            //     Debug.Log("Black screen dinonaktifkan selama cutscene");
+            // }
+
+            // Pastikan video di-play
+            videoPlayer.Play();
+            
+            // Tunggu sampai video selesai
+            yield return new WaitForSeconds((float)videoPlayer.length);
+            
+            // Atau tunggu sampai video selesai dengan cara yang lebih akurat
+            // while (videoPlayer.isPlaying)
+            // {
+            //     yield return null;
+            // }
+        }
+        else
+        {
+            // Jika tidak ada VideoPlayer, tunggu beberapa detik
+            Debug.LogWarning("Tidak ada VideoPlayer ditemukan, cutscene akan berlangsung 5 detik");
+            yield return new WaitForSeconds(5f);
+        }
+        
+        // Nonaktifkan cutscene setelah selesai
+        cutsceneObject.SetActive(false);
+        
+        // Aktifkan kembali black screen jika dinonaktifkan sebelumnya
+        if (disableBlackScreenDuringCutscene && blackScreen != null)
+        {
+            blackScreen.SetActive(true);
+            Debug.Log("Black screen diaktifkan kembali setelah cutscene");
+        }
+        
+        Debug.Log("Cutscene selesai");
+    }
+    
+    private void SkipCutscene()
+    {
+        if (cutsceneCoroutine != null)
+        {
+            StopCoroutine(cutsceneCoroutine);
+        }
+        
+        // Hentikan video jika sedang diputar
+        if (videoPlayer != null && videoPlayer.isPlaying)
+        {
+            videoPlayer.Stop();
+        }
+        
+        // Nonaktifkan cutscene object
+        cutsceneObject.SetActive(false);
+        
+        // Aktifkan kembali black screen jika perlu
+        if (disableBlackScreenDuringCutscene && blackScreen != null)
+        {
+            blackScreen.SetActive(true);
+        }
+        
+        Debug.Log("Cutscene di-skip");
+        
+        // Langsung lanjut ke load scene
+        StartCoroutine(LoadNextScene());
     }
 
     // ========== METHOD UNTUK MENGUBAH INSTRUCTION ==========
@@ -389,7 +549,7 @@ public class DialogueLift : MonoBehaviour
         if (elapsedTime < blackScreenDuration)
         {
             float remainingTime = blackScreenDuration - elapsedTime;
-            Debug.Log($"Menunggu {remainingTime} detik sebelum load scene...");
+            Debug.Log($"Menunggu {remainingTime} detik sebelum memulai cutscene...");
             yield return new WaitForSeconds(remainingTime);
         }
         
@@ -399,7 +559,7 @@ public class DialogueLift : MonoBehaviour
             Debug.Log($"Dialogue canvas sort order dikembalikan: 100 -> {originalDialogueSortOrder}");
         }
         
-        Debug.Log("Transition selesai!");
+        Debug.Log("Transition selesai, siap untuk cutscene!");
     }
 
     // ========== AUDIO FADE OUT SYSTEM ==========
