@@ -161,6 +161,16 @@ public class MainMenu : MonoBehaviour
         StopMenuMusic();
         SceneManager.LoadScene("Stage1");
     }
+
+    public void Chapter1()
+    {
+        SceneManager.LoadScene("Stage1");
+    }
+
+    public void Chapter2()
+    {
+        SceneManager.LoadScene("Stage2");
+    }
     
     public void Chapter()
     {
