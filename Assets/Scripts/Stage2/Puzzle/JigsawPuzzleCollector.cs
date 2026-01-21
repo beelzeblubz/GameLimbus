@@ -43,7 +43,7 @@ public class JigsawPuzzleCollector : MonoBehaviour
     [SerializeField] private GameObject instructionToEnable;
 
     [Header("Object to Disable After Pickup")]
-    [SerializeField] private GameObject tableToDisable;
+    [SerializeField] private GameObject lightingToDisable;
     [SerializeField] private float disableDelay = 0.2f;
 
     [Header("Puzzle Progress Settings")]
@@ -97,6 +97,7 @@ public class JigsawPuzzleCollector : MonoBehaviour
         {
             // Pastikan popup dan semua children tidak aktif
             puzzlePiecePopup.SetActive(false);
+            // lightingToDisable.SetActive(false);
             
             // Nonaktifkan komponen UI secara spesifik juga
             if (pieceImageUI != null)
@@ -289,6 +290,7 @@ public class JigsawPuzzleCollector : MonoBehaviour
         if (pieceImageUI != null && !pieceImageUI.gameObject.activeSelf)
         {
             pieceImageUI.gameObject.SetActive(true);
+            lightingToDisable.SetActive(false);
         }
         
         if (pieceNameText != null && !pieceNameText.gameObject.activeSelf)
@@ -446,9 +448,9 @@ public class JigsawPuzzleCollector : MonoBehaviour
     {
         yield return new WaitForSeconds(disableDelay);
         
-        if (tableToDisable != null && tableToDisable.activeSelf)
+        if (lightingToDisable != null && lightingToDisable.activeSelf)
         {
-            tableToDisable.SetActive(false);
+            lightingToDisable.SetActive(false);
         }
     }
 

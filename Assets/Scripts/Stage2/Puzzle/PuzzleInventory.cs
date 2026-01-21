@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.ComponentModel.Design;
+using TMPro;
 
 [System.Serializable]
 public class PuzzlePiece
@@ -49,7 +50,7 @@ public class PuzzleInventory : MonoBehaviour
     [SerializeField] private GameObject pieceUIPrefab;
     [SerializeField] private GameObject openButton;
     [SerializeField] private Button closeButton;
-    [SerializeField] private Text progressText;
+    [SerializeField] private TextMeshProUGUI progressText;
     
     [Header("Puzzle Settings")]
     [Range(1, 20)]
@@ -73,7 +74,7 @@ public class PuzzleInventory : MonoBehaviour
     
     [Header("Complete Puzzle Settings")]
     [SerializeField] private GameObject victoryPanel;
-    [SerializeField] private Text victoryText;
+    [SerializeField] private TextMeshProUGUI victoryText;
     [SerializeField] private AudioClip puzzleCompleteSFX;
     [SerializeField] private AudioClip piecePlaceSFX;
     [SerializeField] private AudioClip pieceWrongSFX;
@@ -156,7 +157,7 @@ public class PuzzleInventory : MonoBehaviour
             GameObject foundText = GameObject.Find("ProgressText");
             if (foundText != null)
             {
-                progressText = foundText.GetComponent<Text>();
+                progressText = foundText.GetComponent<TextMeshProUGUI>();
                 Debug.Log("ProgressText ditemukan otomatis!");
             }
         }
@@ -186,7 +187,7 @@ public class PuzzleInventory : MonoBehaviour
             GameObject foundVText = GameObject.Find("VictoryText");
             if (foundVText != null)
             {
-                victoryText = foundVText.GetComponent<Text>();
+                victoryText = foundVText.GetComponent<TextMeshProUGUI>();
                 Debug.Log("VictoryText ditemukan otomatis!");
             }
         }
@@ -293,7 +294,7 @@ public class PuzzleInventory : MonoBehaviour
             GameObject found = GameObject.Find("ProgressText");
             if (found != null)
             {
-                progressText = found.GetComponent<Text>();
+                progressText = found.GetComponent<TextMeshProUGUI>();
                 Debug.Log("✓ ProgressText ditemukan!");
             }
         }
@@ -320,7 +321,7 @@ public class PuzzleInventory : MonoBehaviour
             GameObject found = GameObject.Find("VictoryText");
             if (found != null)
             {
-                victoryText = found.GetComponent<Text>();
+                victoryText = found.GetComponent<TextMeshProUGUI>();
                 Debug.Log("✓ VictoryText ditemukan!");
             }
         }

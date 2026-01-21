@@ -4,6 +4,7 @@ public class EnableDisableInstruction : MonoBehaviour
 {
     [SerializeField] private GameObject instructionToDisable;
     [SerializeField] private GameObject instructionToEnable;
+    [SerializeField] private GameObject distroy;
     
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -17,6 +18,9 @@ public class EnableDisableInstruction : MonoBehaviour
         if (instructionToEnable != null)
         {
             instructionToEnable.SetActive(true);
+            
         }
+
+        Destroy(distroy);
     }
 }
