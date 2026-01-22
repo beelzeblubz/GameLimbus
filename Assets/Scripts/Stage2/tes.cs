@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Video;
 
-public class DialogueLift : MonoBehaviour
+public class tes : MonoBehaviour
 {
     public enum InteractionType
     {
@@ -19,28 +20,26 @@ public class DialogueLift : MonoBehaviour
     [SerializeField] private GameObject eventDetect;
 
     [Header("Dialogue Settings")]
-    public Dialogue dialogue; // Dialog pertama kali interact
-    [SerializeField] private Dialogue successDialogue; // Dialog saat lift terbuka
-    [SerializeField] private Dialogue lockedDialogue; // Dialog saat lift terkunci (interact kedua dan seterusnya)
-    [SerializeField] private Dialogue transitionDialogue; // Dialog selama transisi
+    public Dialogue dialogue;
+    [SerializeField] private Dialogue successDialogue;
+    [SerializeField] private Dialogue afterPuzzleDialogue;
+    [SerializeField] private Dialogue transitionDialogue;
 
-    [Header("Keycard Settings")]
-    [SerializeField] private string requiredKeycardName = "Security Card";
-
-    [Header("Lift Settings")]
-    [SerializeField] private GameObject lockedIndicator;
-    [SerializeField] private GameObject unlockedIndicator;
-    [SerializeField] private string nextSceneName = "Stage2";
+    [Header("Puzzle Settings")]
+    [SerializeField] private string requiredPuzzleName = "Escape Puzzle";
     
     [Header("Transition Settings")]
     [SerializeField] private GameObject blackScreen;
     [SerializeField] private GameObject fogMerah;
-    [SerializeField] private GameObject instruction;
+    [SerializeField] private GameObject toogleInventory;
+    [SerializeField] private GameObject tooglePause;
     [SerializeField] private float fadeInDuration = 1f;
     [SerializeField] private float blackScreenDuration = 3f;
     [SerializeField] private float dialogueDelay = 1f;
     [SerializeField] private float dialogueDuration = 1f;
     [SerializeField] private float sceneLoadDelay = 0.5f;
+    
+    [SerializeField] private string nextSceneName = "MainMenu";
 
     [Header("Audio Settings")]
     [SerializeField] private AudioClip transitionSFX;
@@ -48,39 +47,38 @@ public class DialogueLift : MonoBehaviour
     [SerializeField] private float audioFadeOutDuration = 1f;
 
     [Header("Instruction Settings")]
-    [SerializeField] private GameObject instructionToDisable;  // Kolom 1: Instruction yang akan dimatikan
+    [SerializeField] private GameObject instruction;
+    [SerializeField] private GameObject instructionToDisable;
     [SerializeField] private GameObject instructionToDisable2;
-    [SerializeField] private GameObject instructionToEnable;   // Kolom 2: Instruction yang akan dihidupkan
+    [SerializeField] private GameObject instructionToEnable;
 
     [Header("Object Activation Settings")]
-    [SerializeField] private GameObject meja;  // Meja Mika yang akan diaktifkan saat lift terkunci
+    [SerializeField] private GameObject objectToActivate;
 
+    [Header("Inventory Settings")]
+    [SerializeField] private bool usePuzzleInventory = true;
+    [SerializeField] private float inventoryCloseDelay = 1f;
+    
     // Status game
     private bool playerInRange = false;
-    private bool hasTriggered = false;
-    private bool isLiftLocked = true;
-    private int interactionCount = 0; // Menghitung berapa kali player berinteraksi
+    private bool hasTriggeredDialogue = false;
+    private bool hasOpenedInventory = false;
+    private bool isPuzzleSolved = false;
+    private bool isWaitingForInventoryClose = false;
     private Coroutine transitionCoroutine;
     private Coroutine interactionCoroutine;
+    private Coroutine waitingCoroutine;
     private CanvasGroup blackScreenCanvasGroup;
     private AudioSource[] backgroundAudioSources;
     private float[] originalAudioVolumes;
-    
-    // GameManager reference
+
     private GameManager gameManager;
 
-    // Static property untuk kontrol player movement
     public static bool IsAnyTransitionActive { get; private set; }
 
     private void Start()
     {
         gameManager = GameManager.Instance;
-        
-        if (gameManager != null && gameManager.IsLiftUnlocked)
-        {
-            isLiftLocked = false;
-            UpdateVisuals();
-        }
         
         UpdateVisuals();
         
@@ -89,7 +87,6 @@ public class DialogueLift : MonoBehaviour
             eventDetect.SetActive(false);
         }
         
-        // Setup black screen
         if (blackScreen != null)
         {
             blackScreen.SetActive(false);
@@ -97,17 +94,33 @@ public class DialogueLift : MonoBehaviour
             blackScreenCanvasGroup = blackScreen.GetComponent<CanvasGroup>();
         }
         
-        // Cari semua background audio di scene
         FindBackgroundAudioSources();
         
-        // Pastikan meja nonaktif di awal jika tidak null
-        if (meja != null)
+        if (objectToActivate != null)
         {
-            meja.SetActive(false);
+            objectToActivate.SetActive(false);
+        }
+    }
+
+    private void Update()
+    {
+        if (!isPuzzleSolved && PuzzleInventory.Instance != null && PuzzleInventory.Instance.IsPuzzleSolved())
+        {
+            OnPuzzleSolved();
         }
         
-        // Reset interaction count saat mulai
-        interactionCount = 0;
+        if (isWaitingForInventoryClose && PuzzleInventory.Instance != null && !PuzzleInventory.Instance.IsInventoryOpen)
+        {
+            OnInventoryClosed();
+        }
+        
+        if (interactionType == InteractionType.PressE && playerInRange && Input.GetKeyDown(KeyCode.E))
+        {
+            if (!isWaitingForInventoryClose)
+            {
+                HandleInteraction();
+            }
+        }
     }
 
     private void FindBackgroundAudioSources()
@@ -158,10 +171,10 @@ public class DialogueLift : MonoBehaviour
             eventDetect.SetActive(true);
         }
 
-        if (interactionType == InteractionType.AutoTrigger && !hasTriggered)
+        if (interactionType == InteractionType.AutoTrigger && !hasTriggeredDialogue)
         {
-            hasTriggered = true;
-            TriggerFirstDialogue();
+            hasTriggeredDialogue = true;
+            TriggerDialogue();
         }
     }
 
@@ -177,14 +190,6 @@ public class DialogueLift : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (interactionType == InteractionType.PressE && playerInRange && Input.GetKeyDown(KeyCode.E))
-        {
-            HandleInteraction();
-        }
-    }
-
     private void HandleInteraction()
     {
         if (interactionCoroutine != null)
@@ -192,158 +197,178 @@ public class DialogueLift : MonoBehaviour
             StopCoroutine(interactionCoroutine);
         }
         
-        interactionCoroutine = StartCoroutine(LiftSequence());
+        interactionCoroutine = StartCoroutine(EscapeSequence());
     }
 
-    private IEnumerator LiftSequence()
+    private IEnumerator EscapeSequence()
     {
-        Debug.Log($"Memulai LiftSequence - Interaction ke-{interactionCount + 1}");
+        Debug.Log("Memulai EscapeSequence");
         
-        // Tambah count interaksi
-        interactionCount++;
-        
-        if (isLiftLocked)
+        if (!hasTriggeredDialogue)
         {
-            bool playerHasKeycard = false;
-            if (gameManager != null)
+            Debug.Log("STEP 1: Menampilkan dialog...");
+            if (dialogue != null && DialogueManager.Instance != null)
             {
-                playerHasKeycard = gameManager.HasKeycard;
-            }
-            
-            if (playerHasKeycard)
-            {
-                // STEP 1: Dialog "Lift terbuka!"
-                Debug.Log("STEP 1: Menampilkan dialog lift terbuka...");
-                if (successDialogue != null && DialogueManager.Instance != null)
-                {
-                    if (instructionToDisable2 != null)
-                    {
-                        instructionToDisable2.SetActive(false);
-                        instruction.SetActive(false);
-                    }
-                    yield return StartCoroutine(ShowDialogueAndWait(successDialogue));
-                }
-                else
-                {
-                    ShowSimpleMessage($"Lift terbuka! Menggunakan {requiredKeycardName}");
-                    yield return new WaitForSeconds(2f);
-                }
-                
-                // STEP 2: Unlock lift
-                Debug.Log("STEP 2: Membuka lift...");
-                isLiftLocked = false;
-                UpdateVisuals();
-                
-                if (gameManager != null)
-                {
-                    gameManager.SetLiftUnlocked(true);
-                }
-                
-                // STEP 3: Mulai transition dengan layar hitam dan dialog transisi
-                Debug.Log("STEP 3: Memulai transition...");
-                yield return StartCoroutine(StartTransition());
-                fogMerah.SetActive(false);
-                instruction.SetActive(false);
-                
-                // STEP 4: Load scene setelah semua transisi selesai
-                Debug.Log("STEP 4: Loading scene...");
-                yield return new WaitForSeconds(sceneLoadDelay);
-                SceneManager.LoadScene(nextSceneName);
+                HandleInstructions(true, true);
+                yield return StartCoroutine(ShowDialogueAndWait(dialogue));
             }
             else
             {
-                // ========== SAAT LIFT TERKUNCI ==========
-                Debug.Log($"Lift terkunci, player belum punya keycard (Interaction ke-{interactionCount})");
-                
-                // Tentukan dialog mana yang akan ditampilkan berdasarkan interaction count
-                if (interactionCount == 1)
-                {
-                    // Interaksi pertama: tampilkan dialogue utama
-                    Debug.Log("Interaksi pertama: Menampilkan dialogue utama");
-                    if (dialogue != null && DialogueManager.Instance != null)
-                    {
-                        yield return StartCoroutine(ShowDialogueAndWait(dialogue));
-                    }
-                    else
-                    {
-                        ShowSimpleMessage($"Ini lift menuju Stage 2. Tapi terkunci. Butuh {requiredKeycardName}.");
-                        yield return new WaitForSeconds(2f);
-                    }
-                }
-                else
-                {
-                    // Interaksi kedua dan seterusnya: tampilkan lockedDialogue
-                    Debug.Log($"Interaksi ke-{interactionCount}: Menampilkan lockedDialogue");
-                    if (lockedDialogue != null && DialogueManager.Instance != null)
-                    {
-                        yield return StartCoroutine(ShowDialogueAndWait(lockedDialogue));
-                    }
-                    else
-                    {
-                        ShowSimpleMessage($"Lift masih terkunci. Cari {requiredKeycardName} dulu!");
-                        yield return new WaitForSeconds(2f);
-                    }
-                }
-                
-                // ========== UBAH INSTRUCTION ==========
-                ChangeInstruction();
-                
-                // ========== AKTIFKAN meja ==========
-                ActivateMeja();
-                
-                Debug.Log($"Lift terkunci. Objective diubah, meja diaktifkan");
+                ShowSimpleMessage($"Akses dibutuhkan! Selesaikan {requiredPuzzleName} untuk melanjutkan.");
+                yield return new WaitForSeconds(2f);
             }
+            
+            hasTriggeredDialogue = true;
+            
+            ChangeInstruction();
+            ActivateObject();
+            
+            Debug.Log($"Dialog selesai. Objective diubah, object diaktifkan");
+            
+            yield return new WaitForSeconds(0.001f);
+            OpenPuzzleInventory();
         }
         else
         {
-            // Lift sudah terbuka
-            Debug.Log("Lift sudah terbuka, mulai transition...");
-            ShowSimpleMessage("Naik lift ke Stage 2...");
-            yield return new WaitForSeconds(1.5f);
-            
-            // Mulai transition
-            yield return StartCoroutine(StartTransition());
-            
-            // Load scene
-            yield return new WaitForSeconds(sceneLoadDelay);
-            SceneManager.LoadScene(nextSceneName);
+            if (isPuzzleSolved)
+            {
+                Debug.Log("Puzzle sudah diselesaikan. Buka inventory untuk review...");
+                OpenPuzzleInventory();
+                StartWaitingForInventoryClose();
+            }
+            else
+            {
+                OpenPuzzleInventory();
+            }
         }
         
         interactionCoroutine = null;
     }
 
-    // Method untuk AutoTrigger - hanya memanggil dialog pertama
-    private void TriggerFirstDialogue()
+    private void OnPuzzleSolved()
     {
-        if (interactionCount == 0)
+        if (isPuzzleSolved) return;
+        
+        isPuzzleSolved = true;
+        Debug.Log("Puzzle berhasil diselesaikan!");
+        
+        StartCoroutine(ShowSuccessDialogue());
+    }
+
+    private IEnumerator ShowSuccessDialogue()
+    {
+        yield return new WaitForSeconds(0.5f);
+        
+        if (successDialogue != null && DialogueManager.Instance != null)
         {
-            // Interaksi pertama dengan AutoTrigger
-            interactionCount++;
-            
-            if (dialogue != null && DialogueManager.Instance != null)
-            {
-                DialogueManager.Instance.StartDialogue(dialogue);
-            }
-            else
-            {
-                ShowSimpleMessage($"Ini lift menuju Stage 2. Tapi terkunci. Butuh {requiredKeycardName}.");
-            }
+            yield return StartCoroutine(ShowDialogueAndWait(successDialogue));
         }
         else
         {
-            // Interaksi kedua dan seterusnya dengan AutoTrigger
-            if (lockedDialogue != null && DialogueManager.Instance != null)
+            ShowSimpleMessage($"Selamat! {requiredPuzzleName} berhasil diselesaikan!");
+            yield return new WaitForSeconds(2f);
+        }
+        
+        UpdateVisuals();
+        
+        Debug.Log("Puzzle selesai, siap untuk pergi ke scene berikutnya");
+    }
+
+    private void StartWaitingForInventoryClose()
+    {
+        if (waitingCoroutine != null)
+        {
+            StopCoroutine(waitingCoroutine);
+        }
+        
+        isWaitingForInventoryClose = true;
+        Debug.Log("Menunggu player menutup inventory...");
+    }
+
+    private void OnInventoryClosed()
+    {
+        instruction.SetActive(false);
+
+        if (!isWaitingForInventoryClose) return;
+    
+        isWaitingForInventoryClose = false;
+        Debug.Log("Inventory ditutup, memulai transisi...");
+        
+        // Langsung mulai transisi dan load scene
+        StartCoroutine(StartTransitionAndLoadScene());
+    }
+
+    private IEnumerator StartTransitionAndLoadScene()
+    {
+        Debug.Log("Memulai transisi langsung ke scene berikutnya...");
+        
+        tooglePause.SetActive(false);
+        toogleInventory.SetActive(false);
+        
+        // Mulai transition (black screen, fade audio, dll)
+        yield return StartCoroutine(StartTransition());
+        
+        fogMerah.SetActive(false);
+        
+        // Langsung load scene setelah black screen selesai
+        Debug.Log("Transisi selesai, loading scene...");
+        yield return StartCoroutine(LoadNextScene());
+    }
+
+    private void ChangeInstruction()
+    {
+        if (instructionToDisable != null)
+        {
+            instructionToDisable.SetActive(false);
+            Debug.Log($"Instruction dimatikan: {instructionToDisable.name}");
+        }
+        
+        if (instructionToEnable != null)
+        {
+            instructionToEnable.SetActive(true);
+            Debug.Log($"Instruction dihidupkan: {instructionToEnable.name}");
+        }
+        else
+        {
+            Debug.LogWarning("instructionToEnable null - tidak ada instruction baru yang diaktifkan");
+        }
+    }
+
+    private void ActivateObject()
+    {
+        if (objectToActivate != null)
+        {
+            objectToActivate.SetActive(true);
+            Debug.Log($"Object diaktifkan: {objectToActivate.name}");
+        }
+        else
+        {
+            Debug.LogWarning("objectToActivate GameObject null - tidak ada object yang diaktifkan");
+        }
+    }
+
+    private void OpenPuzzleInventory()
+    {
+        Debug.Log("Membuka Puzzle Inventory...");
+        
+        if (PuzzleInventory.Instance != null)
+        {
+            PuzzleInventory.Instance.OpenInventory();
+            hasOpenedInventory = true;
+        }
+        else
+        {
+            Debug.LogError("PuzzleInventory.Instance tidak ditemukan!");
+            
+            PuzzleInventory puzzleInventory = FindObjectOfType<PuzzleInventory>();
+            if (puzzleInventory != null)
             {
-                DialogueManager.Instance.StartDialogue(lockedDialogue);
-            }
-            else
-            {
-                ShowSimpleMessage($"Lift masih terkunci. Cari {requiredKeycardName} dulu!");
+                puzzleInventory.OpenInventory();
+                hasOpenedInventory = true;
             }
         }
     }
 
-    // ========== TRANSITION SYSTEM DENGAN DIALOG TRANSI ==========
     private IEnumerator StartTransition()
     {
         if (blackScreen == null)
@@ -355,7 +380,6 @@ public class DialogueLift : MonoBehaviour
         int originalDialogueSortOrder = 0;
         Canvas dialogueCanvas = null;
         
-        // Atur sorting order untuk dialog agar tampil di atas black screen
         if (DialogueManager.Instance != null && DialogueManager.Instance.dialogueBox != null)
         {
             dialogueCanvas = DialogueManager.Instance.dialogueBox.GetComponentInParent<Canvas>();
@@ -371,40 +395,32 @@ public class DialogueLift : MonoBehaviour
         
         Debug.Log("Memulai transition dengan fade out audio...");
         
-        // Mulai fade out audio
         Coroutine audioFadeCoroutine = null;
         if (backgroundAudioSources.Length > 0 && audioFadeOutDuration > 0)
         {
             audioFadeCoroutine = StartCoroutine(FadeOutAllBackgroundAudio());
         }
         
-        // Aktifkan black screen
         blackScreen.SetActive(true);
         
-        // Atur sorting order black screen
         Canvas blackScreenCanvas = blackScreen.GetComponentInParent<Canvas>();
         if (blackScreenCanvas != null)
         {
-            blackScreenCanvas.sortingOrder = 99; // Di bawah dialog
+            blackScreenCanvas.sortingOrder = 99;
         }
         
-        // Fade in black screen
         yield return StartCoroutine(FadeCanvasGroup(blackScreenCanvasGroup, 0f, 1f, fadeInDuration));
         
-        // Tunggu fade out audio selesai
         if (audioFadeCoroutine != null)
         {
             yield return audioFadeCoroutine;
             Debug.Log("Fade out audio selesai");
         }
         
-        // Mainkan SFX transisi
         PlaySFX(transitionSFX);
         
-        // Tunggu sebelum menampilkan dialog transisi
         yield return new WaitForSeconds(dialogueDelay);
         
-        // Tampilkan dialog transisi jika ada
         if (transitionDialogue != null && DialogueManager.Instance != null)
         {
             Debug.Log("Menampilkan transition dialogue...");
@@ -429,10 +445,7 @@ public class DialogueLift : MonoBehaviour
         
         Debug.Log("Transition dialogue selesai...");
         
-        // Hitung waktu yang sudah berlalu
         float elapsedTime = fadeInDuration + dialogueDelay + dialogueDuration;
-        
-        // Tunggu sisa waktu black screen jika perlu
         if (elapsedTime < blackScreenDuration)
         {
             float remainingTime = blackScreenDuration - elapsedTime;
@@ -440,17 +453,15 @@ public class DialogueLift : MonoBehaviour
             yield return new WaitForSeconds(remainingTime);
         }
         
-        // Kembalikan sorting order dialog ke semula
         if (dialogueCanvas != null)
         {
             dialogueCanvas.sortingOrder = originalDialogueSortOrder;
             Debug.Log($"Dialogue canvas sort order dikembalikan: 100 -> {originalDialogueSortOrder}");
         }
         
-        Debug.Log("Transition selesai, siap untuk load scene!");
+        Debug.Log("Transition selesai, siap load scene!");
     }
 
-    // ========== AUDIO FADE OUT SYSTEM ==========
     private IEnumerator FadeOutAllBackgroundAudio()
     {
         Debug.Log($"Memulai fade out {backgroundAudioSources.Length} background audio...");
@@ -492,46 +503,6 @@ public class DialogueLift : MonoBehaviour
         Debug.Log("Semua background audio telah di-fade out");
     }
 
-    // ========== METHOD UNTUK MENGUBAH INSTRUCTION ==========
-    private void ChangeInstruction()
-    {
-        // Hanya ubah instruction saat interaksi pertama
-        if (interactionCount == 1)
-        {
-            if (instructionToDisable != null)
-            {
-                instructionToDisable.SetActive(false);
-                Debug.Log($"Instruction dimatikan: {instructionToDisable.name}");
-            }
-            
-            if (instructionToEnable != null)
-            {
-                instructionToEnable.SetActive(true);
-                Debug.Log($"Instruction dihidupkan: {instructionToEnable.name}");
-            }
-            else
-            {
-                Debug.LogWarning("instructionToEnable null - tidak ada instruction baru yang diaktifkan");
-            }
-        }
-    }
-
-    // ========== METHOD UNTUK MENGAKTIFKAN meja ==========
-    private void ActivateMeja()
-    {
-        // Hanya aktifkan meja saat interaksi pertama
-        if (interactionCount == 1 && meja != null)
-        {
-            meja.SetActive(true);
-            Debug.Log($"Meja Mika diaktifkan: {meja.name}");
-        }
-        else if (meja == null)
-        {
-            Debug.LogWarning("meja GameObject null - tidak ada meja yang diaktifkan");
-        }
-    }
-
-    // ========== DIALOGUE METHODS ==========
     private IEnumerator ShowDialogueAndWait(Dialogue dialogueToShow)
     {
         if (DialogueManager.Instance == null)
@@ -546,6 +517,17 @@ public class DialogueLift : MonoBehaviour
         yield return new WaitWhile(() => DialogueManager.Instance.isDialoguesActive);
         
         Debug.Log("Dialogue selesai, melanjutkan...");
+    }
+
+    public void TriggerDialogue()
+    {
+        if (DialogueManager.Instance == null)
+        {
+            Debug.LogError("DialogueManager.Instance NULL!");
+            return;
+        }
+
+        DialogueManager.Instance.StartDialogue(dialogue);
     }
 
     private void ShowSimpleMessage(string message)
@@ -572,7 +554,6 @@ public class DialogueLift : MonoBehaviour
         }
     }
 
-    // ========== FADE ANIMATION ==========
     private IEnumerator FadeCanvasGroup(CanvasGroup canvasGroup, float fromAlpha, float toAlpha, float duration)
     {
         if (canvasGroup == null) yield break;
@@ -591,17 +572,48 @@ public class DialogueLift : MonoBehaviour
         canvasGroup.alpha = toAlpha;
     }
 
-    // ========== VISUAL UPDATES ==========
-    private void UpdateVisuals()
+    private IEnumerator LoadNextScene()
     {
-        if (lockedIndicator != null)
-            lockedIndicator.SetActive(isLiftLocked);
+        Debug.Log($"Menunggu {sceneLoadDelay} detik sebelum load scene...");
+        yield return new WaitForSeconds(sceneLoadDelay);
         
-        if (unlockedIndicator != null)
-            unlockedIndicator.SetActive(!isLiftLocked);
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            Debug.Log($"Loading scene: {nextSceneName}");
+            SceneManager.LoadScene(nextSceneName);
+        }
+        else
+        {
+            Debug.LogError("Next scene name belum diatur!");
+        }
     }
 
-    // ========== AUDIO METHODS ==========
+    private void UpdateVisuals()
+    {
+        // Visual feedback bisa ditambahkan di sini
+    }
+
+    private void HandleInstructions(bool disableFirst = true, bool disableSecond = true)
+    {
+        if (disableFirst && instructionToDisable != null)
+        {
+            instructionToDisable.SetActive(false);
+            Debug.Log($"Instruction dimatikan: {instructionToDisable.name}");
+        }
+        
+        if (disableSecond && instructionToDisable2 != null)
+        {
+            instructionToDisable2.SetActive(false);
+            Debug.Log($"Instruction 2 dimatikan: {instructionToDisable2.name}");
+        }
+        
+        if (instructionToEnable != null)
+        {
+            instructionToEnable.SetActive(true);
+            Debug.Log($"Instruction dihidupkan: {instructionToEnable.name}");
+        }
+    }
+
     private void PlaySFX(AudioClip clip)
     {
         if (clip == null) return;
@@ -613,17 +625,5 @@ public class DialogueLift : MonoBehaviour
         audioSource.spatialBlend = 0f;
         audioSource.Play();
         Destroy(audioObject, clip.length + 0.1f);
-    }
-
-    // Method untuk reset transition status (bisa dipanggil dari scene lain)
-    public static void ResetTransitionStatus()
-    {
-        IsAnyTransitionActive = false;
-    }
-    
-    // Method untuk mendapatkan interaction count (untuk debugging)
-    public int GetInteractionCount()
-    {
-        return interactionCount;
     }
 }

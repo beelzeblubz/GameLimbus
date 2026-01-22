@@ -2,16 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Video;
+using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private GameObject menuPanel;
-    
-    [Header("Video Settings")]
-    [SerializeField] private GameObject videoObject;
-    [SerializeField] private bool autoSkipAfterVideo = true;
+    [SerializeField] private Image fadePanel;
     
     [Header("Audio Settings")]
     [SerializeField] private AudioSource menuAudioSource;
@@ -19,14 +16,21 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private float musicVolume = 0.5f;
     [SerializeField] private bool loopMusic = true;
     
-    private VideoPlayer videoPlayer;
+    [Header("Fade Settings")]
+    [SerializeField] private float fadeDuration = 1.0f;
+    [SerializeField] private Color fadeColor = Color.black;
+    
+    private bool isTransitioning = false;
     
     private void Start()
     {
-        // Nonaktifkan menu panel di awal
+        // Setup fade panel
+        InitializeFadePanel();
+        
+        // Aktifkan menu panel langsung
         if (menuPanel != null)
         {
-            menuPanel.SetActive(false);
+            menuPanel.SetActive(true);
         }
         
         // Setup audio source jika belum ada
@@ -48,77 +52,147 @@ public class MainMenu : MonoBehaviour
             menuAudioSource.playOnAwake = false;
         }
         
-        if (videoObject != null)
-        {
-            videoPlayer = videoObject.GetComponent<VideoPlayer>();
-            
-            if (videoPlayer != null)
-            {
-                videoPlayer.loopPointReached += OnVideoFinished;
-                
-                videoObject.SetActive(true);
-                videoPlayer.Play();
-            }
-            else
-            {
-                Debug.LogWarning("VideoPlayer tidak ditemukan di GameObject!");
-                ShowMenu();
-            }
-        }
-        else
-        {
-            ShowMenu();
-        }
-    }
-    
-    private void OnVideoFinished(VideoPlayer vp)
-    {
-        if (autoSkipAfterVideo)
-        {
-            ShowMenu();
-        }
-    }
-    
-    private void Update()
-    {
-        // Skip video dengan tombol S atau Space
-        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.Space))
-        {
-            SkipVideo();
-        }
-    }
-    
-    public void SkipVideo()
-    {
-        ShowMenu();
-    }
-    
-    private void ShowMenu()
-    {
-        if (videoObject != null)
-        {
-            if (videoPlayer != null && videoPlayer.isPlaying)
-            {
-                videoPlayer.Stop();
-            }
-            
-            videoObject.SetActive(false);
-        }
-        
-        // Tampilkan menu panel
-        if (menuPanel != null)
-        {
-            menuPanel.SetActive(true);
-        }
-        
-        // Putar background music untuk menu
+        // Putar background music langsung
         PlayMenuMusic();
         
-        // Unsubscribe event
-        if (videoPlayer != null)
+        // Fade in dari blackscreen saat awal game
+        StartCoroutine(FadeIn());
+    }
+    
+    private void InitializeFadePanel()
+    {
+        // Cek apakah fade panel sudah ada
+        if (fadePanel == null)
         {
-            videoPlayer.loopPointReached -= OnVideoFinished;
+            // Buat GameObject untuk fade panel
+            GameObject fadeObject = new GameObject("FadePanel");
+            fadePanel = fadeObject.AddComponent<Image>();
+            
+            // Set parent ke canvas
+            Canvas canvas = FindObjectOfType<Canvas>();
+            if (canvas == null)
+            {
+                GameObject canvasObj = new GameObject("Canvas");
+                canvas = canvasObj.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvasObj.AddComponent<CanvasScaler>();
+                canvasObj.AddComponent<GraphicRaycaster>();
+            }
+            
+            fadeObject.transform.SetParent(canvas.transform, false);
+            
+            // Setup RectTransform
+            RectTransform rectTransform = fadePanel.GetComponent<RectTransform>();
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.one;
+            rectTransform.offsetMin = Vector2.zero;
+            rectTransform.offsetMax = Vector2.zero;
+            rectTransform.localScale = Vector3.one;
+            
+            // Setup Image
+            fadePanel.color = fadeColor;
+            fadePanel.raycastTarget = false;
         }
+        
+        // Set fade panel ke fully opaque di awal
+        Color color = fadePanel.color;
+        color.a = 1f;
+        fadePanel.color = color;
+        fadePanel.gameObject.SetActive(true);
+    }
+    
+    private IEnumerator FadeIn()
+    {
+        fadePanel.gameObject.SetActive(true);
+        
+        float elapsedTime = 0f;
+        Color color = fadePanel.color;
+        
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, elapsedTime / fadeDuration);
+            color.a = alpha;
+            fadePanel.color = color;
+            yield return null;
+        }
+        
+        color.a = 0f;
+        fadePanel.color = color;
+        fadePanel.gameObject.SetActive(false);
+    }
+    
+    private IEnumerator FadeOutAndLoadScene(string sceneName)
+    {
+        if (isTransitioning) yield break;
+        
+        isTransitioning = true;
+        
+        // Aktifkan fade panel
+        fadePanel.gameObject.SetActive(true);
+        
+        // Fade out ke blackscreen
+        float elapsedTime = 0f;
+        Color color = fadePanel.color;
+        
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float alpha = Mathf.Lerp(0f, 1f, elapsedTime / fadeDuration);
+            color.a = alpha;
+            fadePanel.color = color;
+            yield return null;
+        }
+        
+        color.a = 1f;
+        fadePanel.color = color;
+        
+        // Tunggu sebentar di blackscreen
+        yield return new WaitForSeconds(0.2f);
+        
+        // Stop music dan load scene
+        StopMenuMusic();
+        SceneManager.LoadScene(sceneName);
+        
+        isTransitioning = false;
+    }
+    
+    private IEnumerator FadeOutAndQuit()
+    {
+        if (isTransitioning) yield break;
+        
+        isTransitioning = true;
+        
+        // Aktifkan fade panel
+        fadePanel.gameObject.SetActive(true);
+        
+        // Fade out ke blackscreen
+        float elapsedTime = 0f;
+        Color color = fadePanel.color;
+        
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float alpha = Mathf.Lerp(0f, 1f, elapsedTime / fadeDuration);
+            color.a = alpha;
+            fadePanel.color = color;
+            yield return null;
+        }
+        
+        color.a = 1f;
+        fadePanel.color = color;
+        
+        // Tunggu sebentar di blackscreen
+        yield return new WaitForSeconds(0.2f);
+        
+        // Quit game
+        Application.Quit();
+        
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #endif
+        
+        isTransitioning = false;
     }
     
     private void PlayMenuMusic()
@@ -154,54 +228,54 @@ public class MainMenu : MonoBehaviour
         }
     }
     
-    // Menu button functions
+    // Menu button functions - MODIFIED WITH FADE EFFECT
     public void Play()
     {
-        // Optional: Stop music sebelum pindah scene
-        StopMenuMusic();
-        SceneManager.LoadScene("Stage1");
+        StartCoroutine(FadeOutAndLoadScene("Stage1"));
     }
 
     public void Chapter1()
     {
-        SceneManager.LoadScene("Stage1");
+        StartCoroutine(FadeOutAndLoadScene("Stage1"));
     }
 
     public void Chapter2()
     {
-        SceneManager.LoadScene("Stage2");
+        StartCoroutine(FadeOutAndLoadScene("Stage2"));
     }
     
     public void Chapter()
     {
         // Implementasi chapter menu
+        // Jika ada scene tertentu, gunakan StartCoroutine(FadeOutAndLoadScene("SceneName"));
     }
 
     public void Setting()
     {
         // Implementasi setting menu
+        // Jika ada scene setting, gunakan StartCoroutine(FadeOutAndLoadScene("SettingScene"));
     }
 
     public void Credit()
     {
         // Implementasi credit menu
+        // Jika ada scene credit, gunakan StartCoroutine(FadeOutAndLoadScene("CreditScene"));
     }
     
     public void Exit()
     {
-        Application.Quit();
-        
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #endif
+        StartCoroutine(FadeOutAndQuit());
     }
     
-    private void OnDestroy()
+    // Public method untuk fade yang bisa dipanggil dari luar
+    public void LoadSceneWithFade(string sceneName)
     {
-        // Cleanup event untuk menghindari memory leak
-        if (videoPlayer != null)
-        {
-            videoPlayer.loopPointReached -= OnVideoFinished;
-        }
+        StartCoroutine(FadeOutAndLoadScene(sceneName));
+    }
+    
+    // Method untuk mendapatkan status transition
+    public bool IsTransitioning()
+    {
+        return isTransitioning;
     }
 }

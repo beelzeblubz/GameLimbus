@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using UnityEngine.Video; // Tambahkan ini untuk VideoPlayer
+using UnityEngine.Video;
 
 public class EscapeDialogueTriggered : MonoBehaviour
 {
@@ -22,11 +22,10 @@ public class EscapeDialogueTriggered : MonoBehaviour
     [Header("Dialogue Settings")]
     public Dialogue dialogue;
     [SerializeField] private Dialogue successDialogue;
-    [SerializeField] private Dialogue afterPuzzleDialogue;  // Dialog setelah close puzzle
+    [SerializeField] private Dialogue afterPuzzleDialogue;
     [SerializeField] private Dialogue transitionDialogue;
 
     [Header("Puzzle Settings")]
-    // [SerializeField] private GameObject mejaPuzzle;
     [SerializeField] private string requiredPuzzleName = "Escape Puzzle";
     
     [Header("Transition Settings")]
@@ -41,12 +40,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
     [SerializeField] private float sceneLoadDelay = 0.5f;
     
     [SerializeField] private string nextSceneName = "MainMenu";
-
-    [Header("Cutscene Settings")]
-    [SerializeField] private GameObject cutsceneObject; // GameObject yang mengandung VideoPlayer
-    [SerializeField] private bool playCutscene = true;
-    [SerializeField] private float cutsceneDelay = 0.5f; // Delay sebelum memulai cutscene
-    [SerializeField] private bool disableBlackScreenDuringCutscene = true;
 
     [Header("Audio Settings")]
     [SerializeField] private AudioClip transitionSFX;
@@ -71,23 +64,16 @@ public class EscapeDialogueTriggered : MonoBehaviour
     private bool hasTriggeredDialogue = false;
     private bool hasOpenedInventory = false;
     private bool isPuzzleSolved = false;
-    private bool isWaitingForInventoryClose = false;  // Menunggu player close inventory
+    private bool isWaitingForInventoryClose = false;
     private Coroutine transitionCoroutine;
     private Coroutine interactionCoroutine;
-    private Coroutine cutsceneCoroutine;
     private Coroutine waitingCoroutine;
     private CanvasGroup blackScreenCanvasGroup;
     private AudioSource[] backgroundAudioSources;
     private float[] originalAudioVolumes;
-    
-    // Cutscene components
-    private VideoPlayer videoPlayer;
-    private AudioSource videoAudioSource;
 
-    // GameManager reference
     private GameManager gameManager;
 
-    // Static property untuk kontrol player movement
     public static bool IsAnyTransitionActive { get; private set; }
 
     private void Start()
@@ -101,7 +87,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
             eventDetect.SetActive(false);
         }
         
-        // Setup black screen
         if (blackScreen != null)
         {
             blackScreen.SetActive(false);
@@ -109,57 +94,21 @@ public class EscapeDialogueTriggered : MonoBehaviour
             blackScreenCanvasGroup = blackScreen.GetComponent<CanvasGroup>();
         }
         
-        // Setup cutscene object
-        InitializeCutscene();
-        
-        // Cari semua background audio di scene
         FindBackgroundAudioSources();
         
-        // Pastikan object nonaktif di awal jika tidak null
         if (objectToActivate != null)
         {
             objectToActivate.SetActive(false);
         }
     }
 
-    private void InitializeCutscene()
-    {
-        if (cutsceneObject != null)
-        {
-            // Cari VideoPlayer di cutsceneObject
-            videoPlayer = cutsceneObject.GetComponent<VideoPlayer>();
-            if (videoPlayer == null)
-            {
-                videoPlayer = cutsceneObject.GetComponentInChildren<VideoPlayer>();
-            }
-            
-            // Cari AudioSource untuk video
-            videoAudioSource = cutsceneObject.GetComponent<AudioSource>();
-            if (videoAudioSource == null)
-            {
-                videoAudioSource = cutsceneObject.GetComponentInChildren<AudioSource>();
-            }
-            
-            // Nonaktifkan cutscene di awal
-            cutsceneObject.SetActive(false);
-            
-            Debug.Log($"Cutscene initialized: VideoPlayer={(videoPlayer != null)}, AudioSource={(videoAudioSource != null)}");
-        }
-        else
-        {
-            Debug.LogWarning("CutsceneObject belum di-assign di Inspector!");
-        }
-    }
-
     private void Update()
     {
-        // Cek jika puzzle sudah diselesaikan
         if (!isPuzzleSolved && PuzzleInventory.Instance != null && PuzzleInventory.Instance.IsPuzzleSolved())
         {
             OnPuzzleSolved();
         }
         
-        // Cek jika sedang menunggu inventory close dan inventory sudah ditutup
         if (isWaitingForInventoryClose && PuzzleInventory.Instance != null && !PuzzleInventory.Instance.IsInventoryOpen)
         {
             OnInventoryClosed();
@@ -167,18 +116,10 @@ public class EscapeDialogueTriggered : MonoBehaviour
         
         if (interactionType == InteractionType.PressE && playerInRange && Input.GetKeyDown(KeyCode.E))
         {
-            // Jangan handle interaction jika sedang menunggu inventory close
             if (!isWaitingForInventoryClose)
             {
                 HandleInteraction();
             }
-        }
-        
-        // Skip cutscene dengan tombol Escape atau Space
-        if (cutsceneObject != null && cutsceneObject.activeSelf && 
-            (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Space)))
-        {
-            SkipCutscene();
         }
     }
 
@@ -265,8 +206,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         
         if (!hasTriggeredDialogue)
         {
-            // ========== INTERAKSI PERTAMA KALI ==========
-            // Tampilkan dialog
             Debug.Log("STEP 1: Menampilkan dialog...");
             if (dialogue != null && DialogueManager.Instance != null)
             {
@@ -281,35 +220,24 @@ public class EscapeDialogueTriggered : MonoBehaviour
             
             hasTriggeredDialogue = true;
             
-            // ========== UBAH INSTRUCTION ==========
             ChangeInstruction();
-            
-            // ========== AKTIFKAN object ==========
             ActivateObject();
             
             Debug.Log($"Dialog selesai. Objective diubah, object diaktifkan");
             
-            // ========== BUKA PUZZLE INVENTORY ==========
             yield return new WaitForSeconds(0.001f);
             OpenPuzzleInventory();
         }
         else
         {
-            // ========== INTERAKSI BERIKUTNYA ==========
             if (isPuzzleSolved)
             {
-                // Puzzle sudah diselesaikan
                 Debug.Log("Puzzle sudah diselesaikan. Buka inventory untuk review...");
-                
-                // Buka puzzle inventory (untuk review)
                 OpenPuzzleInventory();
-                
-                // Mulai menunggu player close inventory
                 StartWaitingForInventoryClose();
             }
             else
             {
-                // Puzzle belum diselesaikan, buka inventory lagi
                 OpenPuzzleInventory();
             }
         }
@@ -324,7 +252,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         isPuzzleSolved = true;
         Debug.Log("Puzzle berhasil diselesaikan!");
         
-        // Tampilkan dialog sukses
         StartCoroutine(ShowSuccessDialogue());
     }
 
@@ -342,7 +269,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
             yield return new WaitForSeconds(2f);
         }
         
-        // Update visuals
         UpdateVisuals();
         
         Debug.Log("Puzzle selesai, siap untuk pergi ke scene berikutnya");
@@ -368,118 +294,27 @@ public class EscapeDialogueTriggered : MonoBehaviour
         isWaitingForInventoryClose = false;
         Debug.Log("Inventory ditutup, memulai transisi...");
         
-        // Lanjut ke transisi dengan cutscene
-        StartCoroutine(StartTransitionWithCutscene());
+        // Langsung mulai transisi dan load scene
+        StartCoroutine(StartTransitionAndLoadScene());
     }
 
-    private IEnumerator StartTransitionWithCutscene()
+    private IEnumerator StartTransitionAndLoadScene()
     {
-        Debug.Log("Memulai transisi dengan cutscene...");
+        Debug.Log("Memulai transisi langsung ke scene berikutnya...");
         
-        // Mulai transition (black screen, fade audio, dll)
-
         tooglePause.SetActive(false);
         toogleInventory.SetActive(false);
+        
+        // Mulai transition (black screen, fade audio, dll)
         yield return StartCoroutine(StartTransition());
+        
         fogMerah.SetActive(false);
         
-        // Play cutscene (jika diaktifkan)
-        if (playCutscene && cutsceneObject != null)
-        {
-            Debug.Log("Memainkan cutscene...");
-            cutsceneCoroutine = StartCoroutine(PlayCutscene());
-            yield return cutsceneCoroutine;
-        }
-        
-        // Load scene setelah cutscene selesai
-        StartCoroutine(LoadNextScene());
+        // Langsung load scene setelah black screen selesai
+        Debug.Log("Transisi selesai, loading scene...");
+        yield return StartCoroutine(LoadNextScene());
     }
 
-    // ========== CUTSCENE SYSTEM ==========
-    private IEnumerator PlayCutscene()
-    {
-        Debug.Log("Memulai cutscene...");
-        
-        // Tunggu sebentar sebelum memulai cutscene
-        yield return new WaitForSeconds(cutsceneDelay);
-        
-        // Nonaktifkan black screen jika diatur
-        if (disableBlackScreenDuringCutscene && blackScreen != null)
-        {
-            blackScreen.SetActive(false);
-            Debug.Log("Black screen dinonaktifkan selama cutscene");
-        }
-        
-        // Aktifkan cutscene object
-        cutsceneObject.SetActive(true);
-        
-        // Setup VideoPlayer jika ada
-        if (videoPlayer != null)
-        {
-            // Pastikan video di-play
-            videoPlayer.Play();
-            
-            // Tunggu sampai video selesai
-            yield return new WaitForSeconds((float)videoPlayer.length);
-            
-            // Atau tunggu sampai video selesai dengan cara yang lebih akurat
-            // while (videoPlayer.isPlaying)
-            // {
-            //     yield return null;
-            // }
-        }
-        else
-        {
-            // Jika tidak ada VideoPlayer, tunggu beberapa detik
-            Debug.LogWarning("Tidak ada VideoPlayer ditemukan, cutscene akan berlangsung 5 detik");
-            yield return new WaitForSeconds(5f);
-        }
-        
-        // Nonaktifkan cutscene setelah selesai
-        cutsceneObject.SetActive(false);
-        
-        // Aktifkan kembali black screen jika dinonaktifkan sebelumnya
-        if (disableBlackScreenDuringCutscene && blackScreen != null)
-        {
-            blackScreen.SetActive(true);
-            Debug.Log("Black screen diaktifkan kembali setelah cutscene");
-        }
-        
-        Debug.Log("Cutscene selesai");
-    }
-    
-    private void SkipCutscene()
-    {
-        if (cutsceneCoroutine != null)
-        {
-            StopCoroutine(cutsceneCoroutine);
-        }
-        
-        // Hentikan video jika sedang diputar
-        if (videoPlayer != null && videoPlayer.isPlaying)
-        {
-            videoPlayer.Stop();
-        }
-        
-        // Nonaktifkan cutscene object
-        if (cutsceneObject != null)
-        {
-            cutsceneObject.SetActive(false);
-        }
-        
-        // Aktifkan kembali black screen jika perlu
-        if (disableBlackScreenDuringCutscene && blackScreen != null)
-        {
-            blackScreen.SetActive(true);
-        }
-        
-        Debug.Log("Cutscene di-skip");
-        
-        // Langsung lanjut ke load scene
-        StartCoroutine(LoadNextScene());
-    }
-
-    // ========== METHOD UNTUK MENGUBAH INSTRUCTION ==========
     private void ChangeInstruction()
     {
         if (instructionToDisable != null)
@@ -499,7 +334,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         }
     }
 
-    // ========== METHOD UNTUK MENGAKTIFKAN object ==========
     private void ActivateObject()
     {
         if (objectToActivate != null)
@@ -516,7 +350,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
     private void OpenPuzzleInventory()
     {
         Debug.Log("Membuka Puzzle Inventory...");
-        // mejaPuzzle.SetActive(true);
         
         if (PuzzleInventory.Instance != null)
         {
@@ -527,7 +360,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         {
             Debug.LogError("PuzzleInventory.Instance tidak ditemukan!");
             
-            // Coba cari secara manual
             PuzzleInventory puzzleInventory = FindObjectOfType<PuzzleInventory>();
             if (puzzleInventory != null)
             {
@@ -537,7 +369,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         }
     }
 
-    // ========== TRANSITION SYSTEM DENGAN FADE OUT AUDIO ==========
     private IEnumerator StartTransition()
     {
         if (blackScreen == null)
@@ -618,7 +449,7 @@ public class EscapeDialogueTriggered : MonoBehaviour
         if (elapsedTime < blackScreenDuration)
         {
             float remainingTime = blackScreenDuration - elapsedTime;
-            Debug.Log($"Menunggu {remainingTime} detik sebelum memulai cutscene...");
+            Debug.Log($"Menunggu {remainingTime} detik sebelum load scene...");
             yield return new WaitForSeconds(remainingTime);
         }
         
@@ -628,10 +459,9 @@ public class EscapeDialogueTriggered : MonoBehaviour
             Debug.Log($"Dialogue canvas sort order dikembalikan: 100 -> {originalDialogueSortOrder}");
         }
         
-        Debug.Log("Transition selesai, siap untuk cutscene!");
+        Debug.Log("Transition selesai, siap load scene!");
     }
 
-    // ========== AUDIO FADE OUT SYSTEM ==========
     private IEnumerator FadeOutAllBackgroundAudio()
     {
         Debug.Log($"Memulai fade out {backgroundAudioSources.Length} background audio...");
@@ -673,7 +503,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         Debug.Log("Semua background audio telah di-fade out");
     }
 
-    // ========== DIALOGUE METHODS ==========
     private IEnumerator ShowDialogueAndWait(Dialogue dialogueToShow)
     {
         if (DialogueManager.Instance == null)
@@ -725,7 +554,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         }
     }
 
-    // ========== FADE ANIMATION ==========
     private IEnumerator FadeCanvasGroup(CanvasGroup canvasGroup, float fromAlpha, float toAlpha, float duration)
     {
         if (canvasGroup == null) yield break;
@@ -744,7 +572,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         canvasGroup.alpha = toAlpha;
     }
 
-    // ========== SCENE LOADING ==========
     private IEnumerator LoadNextScene()
     {
         Debug.Log($"Menunggu {sceneLoadDelay} detik sebelum load scene...");
@@ -761,11 +588,9 @@ public class EscapeDialogueTriggered : MonoBehaviour
         }
     }
 
-    // ========== VISUAL UPDATES ==========
     private void UpdateVisuals()
     {
-        // Anda bisa menambahkan visual feedback di sini jika diperlukan
-        // Misalnya: mengubah warna indicator, dll.
+        // Visual feedback bisa ditambahkan di sini
     }
 
     private void HandleInstructions(bool disableFirst = true, bool disableSecond = true)
@@ -789,7 +614,6 @@ public class EscapeDialogueTriggered : MonoBehaviour
         }
     }
 
-    // ========== AUDIO METHODS ==========
     private void PlaySFX(AudioClip clip)
     {
         if (clip == null) return;
