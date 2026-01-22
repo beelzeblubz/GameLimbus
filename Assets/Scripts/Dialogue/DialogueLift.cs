@@ -60,6 +60,7 @@ public class DialogueLift : MonoBehaviour
     private bool hasTriggered = false;
     private bool isLiftLocked = true;
     private int interactionCount = 0; // Menghitung berapa kali player berinteraksi
+    private bool canInteract = true; // Flag untuk mengontrol apakah player bisa berinteraksi
     private Coroutine transitionCoroutine;
     private Coroutine interactionCoroutine;
     private CanvasGroup blackScreenCanvasGroup;
@@ -106,8 +107,9 @@ public class DialogueLift : MonoBehaviour
             meja.SetActive(false);
         }
         
-        // Reset interaction count saat mulai
+        // Reset status interaksi
         interactionCount = 0;
+        canInteract = true;
     }
 
     private void FindBackgroundAudioSources()
@@ -153,12 +155,12 @@ public class DialogueLift : MonoBehaviour
 
         playerInRange = true;
         
-        if (interactionType == InteractionType.PressE && eventDetect != null)
+        if (interactionType == InteractionType.PressE && eventDetect != null && canInteract)
         {
             eventDetect.SetActive(true);
         }
 
-        if (interactionType == InteractionType.AutoTrigger && !hasTriggered)
+        if (interactionType == InteractionType.AutoTrigger && !hasTriggered && canInteract)
         {
             hasTriggered = true;
             TriggerFirstDialogue();
@@ -179,7 +181,8 @@ public class DialogueLift : MonoBehaviour
 
     private void Update()
     {
-        if (interactionType == InteractionType.PressE && playerInRange && Input.GetKeyDown(KeyCode.E))
+        // Hanya proses input jika bisa berinteraksi dan player dalam range
+        if (interactionType == InteractionType.PressE && playerInRange && Input.GetKeyDown(KeyCode.E) && canInteract)
         {
             HandleInteraction();
         }
@@ -190,6 +193,13 @@ public class DialogueLift : MonoBehaviour
         if (interactionCoroutine != null)
         {
             StopCoroutine(interactionCoroutine);
+        }
+        
+        // Nonaktifkan interaksi sementara
+        canInteract = false;
+        if (eventDetect != null)
+        {
+            eventDetect.SetActive(false);
         }
         
         interactionCoroutine = StartCoroutine(LiftSequence());
@@ -212,8 +222,12 @@ public class DialogueLift : MonoBehaviour
             
             if (playerHasKeycard)
             {
-                // STEP 1: Dialog "Lift terbuka!"
-                Debug.Log("STEP 1: Menampilkan dialog lift terbuka...");
+                // STEP 1: BLOCK PLAYER MOVEMENT SAAT DIALOG DIMULAI
+                Debug.Log("STEP 1: Block player movement untuk success dialogue...");
+                PlayerMovement.SetLiftTransitionBlock(true);
+                
+                // Tampilkan success dialogue
+                Debug.Log("Menampilkan dialog lift terbuka...");
                 if (successDialogue != null && DialogueManager.Instance != null)
                 {
                     if (instructionToDisable2 != null)
@@ -221,7 +235,15 @@ public class DialogueLift : MonoBehaviour
                         instructionToDisable2.SetActive(false);
                         instruction.SetActive(false);
                     }
-                    yield return StartCoroutine(ShowDialogueAndWait(successDialogue));
+                    
+                    // Tampilkan success dialogue
+                    DialogueManager.Instance.StartDialogue(successDialogue);
+                    
+                    // Tunggu sampai dialog selesai
+                    yield return new WaitUntil(() => DialogueManager.Instance.isDialoguesActive);
+                    yield return new WaitWhile(() => DialogueManager.Instance.isDialoguesActive);
+                    
+                    Debug.Log("Success dialogue selesai");
                 }
                 else
                 {
@@ -239,11 +261,14 @@ public class DialogueLift : MonoBehaviour
                     gameManager.SetLiftUnlocked(true);
                 }
                 
-                // STEP 3: Mulai transition dengan layar hitam dan dialog transisi
-                Debug.Log("STEP 3: Memulai transition...");
+                // STEP 3: TETAP BLOCK MOVEMENT DAN LANGSUNG MULAI TRANSITION
+                Debug.Log("STEP 3: Tetap block movement dan mulai transition...");
+                // fogMerah.SetActive(false);
+                instruction.SetActive(false);
+                
+                // Mulai transition (player movement tetap diblokir)
                 yield return StartCoroutine(StartTransition());
                 fogMerah.SetActive(false);
-                instruction.SetActive(false);
                 
                 // STEP 4: Load scene setelah semua transisi selesai
                 Debug.Log("STEP 4: Loading scene...");
@@ -262,7 +287,11 @@ public class DialogueLift : MonoBehaviour
                     Debug.Log("Interaksi pertama: Menampilkan dialogue utama");
                     if (dialogue != null && DialogueManager.Instance != null)
                     {
-                        yield return StartCoroutine(ShowDialogueAndWait(dialogue));
+                        DialogueManager.Instance.StartDialogue(dialogue);
+                        
+                        // Tunggu sampai dialog selesai
+                        yield return new WaitUntil(() => DialogueManager.Instance.isDialoguesActive);
+                        yield return new WaitWhile(() => DialogueManager.Instance.isDialoguesActive);
                     }
                     else
                     {
@@ -276,7 +305,11 @@ public class DialogueLift : MonoBehaviour
                     Debug.Log($"Interaksi ke-{interactionCount}: Menampilkan lockedDialogue");
                     if (lockedDialogue != null && DialogueManager.Instance != null)
                     {
-                        yield return StartCoroutine(ShowDialogueAndWait(lockedDialogue));
+                        DialogueManager.Instance.StartDialogue(lockedDialogue);
+                        
+                        // Tunggu sampai dialog selesai
+                        yield return new WaitUntil(() => DialogueManager.Instance.isDialoguesActive);
+                        yield return new WaitWhile(() => DialogueManager.Instance.isDialoguesActive);
                     }
                     else
                     {
@@ -292,16 +325,24 @@ public class DialogueLift : MonoBehaviour
                 ActivateMeja();
                 
                 Debug.Log($"Lift terkunci. Objective diubah, meja diaktifkan");
+                
+                // ========== KEMBALIKAN INTERAKSI ==========
+                canInteract = true;
+                if (playerInRange && eventDetect != null)
+                {
+                    eventDetect.SetActive(true);
+                }
             }
         }
         else
         {
-            // Lift sudah terbuka
-            Debug.Log("Lift sudah terbuka, mulai transition...");
-            ShowSimpleMessage("Naik lift ke Stage 2...");
-            yield return new WaitForSeconds(1.5f);
+            // Lift sudah terbuka dari awal
+            Debug.Log("Lift sudah terbuka, block movement dan mulai transition...");
             
-            // Mulai transition
+            // Block player movement
+            PlayerMovement.SetLiftTransitionBlock(true);
+            
+            // Mulai transition langsung
             yield return StartCoroutine(StartTransition());
             
             // Load scene
@@ -315,6 +356,8 @@ public class DialogueLift : MonoBehaviour
     // Method untuk AutoTrigger - hanya memanggil dialog pertama
     private void TriggerFirstDialogue()
     {
+        if (!canInteract) return;
+        
         if (interactionCount == 0)
         {
             // Interaksi pertama dengan AutoTrigger
@@ -352,6 +395,7 @@ public class DialogueLift : MonoBehaviour
             yield break;
         }
         
+        PlayerMovement.SetLiftTransitionBlock(true);
         int originalDialogueSortOrder = 0;
         Canvas dialogueCanvas = null;
         
@@ -529,23 +573,6 @@ public class DialogueLift : MonoBehaviour
         {
             Debug.LogWarning("meja GameObject null - tidak ada meja yang diaktifkan");
         }
-    }
-
-    // ========== DIALOGUE METHODS ==========
-    private IEnumerator ShowDialogueAndWait(Dialogue dialogueToShow)
-    {
-        if (DialogueManager.Instance == null)
-        {
-            Debug.LogError("DialogueManager.Instance NULL!");
-            yield break;
-        }
-        
-        DialogueManager.Instance.StartDialogue(dialogueToShow);
-        
-        yield return new WaitUntil(() => DialogueManager.Instance.isDialoguesActive);
-        yield return new WaitWhile(() => DialogueManager.Instance.isDialoguesActive);
-        
-        Debug.Log("Dialogue selesai, melanjutkan...");
     }
 
     private void ShowSimpleMessage(string message)

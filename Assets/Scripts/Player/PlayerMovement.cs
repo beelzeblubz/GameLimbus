@@ -26,11 +26,15 @@ public class PlayerMovement : MonoBehaviour
     
     // Static property untuk kontrol dari script lain
     public static bool IsMovementBlocked { get; set; }
+    
+    // Static property baru untuk blocking dari DialogueLift
+    public static bool IsBlockedByLiftTransition { get; set; }
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         IsMovementBlocked = false;
+        IsBlockedByLiftTransition = false; // Reset di awal
         isDead = false;
         
         gameStartTime = Time.time;
@@ -86,6 +90,12 @@ public class PlayerMovement : MonoBehaviour
         if (IsMovementBlocked)
         {
             shouldBlockMovement = true;
+        }
+        
+        if (IsBlockedByLiftTransition)
+        {
+            shouldBlockMovement = true;
+            Debug.Log("Movement diblokir oleh lift transition");
         }
         
         if (DialogueManager.Instance != null && DialogueManager.Instance.isDialoguesActive)
@@ -270,6 +280,13 @@ public class PlayerMovement : MonoBehaviour
         }
         
         Debug.Log("Player respawn");
+    }
+    
+    // Method untuk mengontrol blocking dari lift transition
+    public static void SetLiftTransitionBlock(bool isBlocked)
+    {
+        IsBlockedByLiftTransition = isBlocked;
+        Debug.Log($"Lift transition block diatur ke: {isBlocked}");
     }
     // ====================================
 }
